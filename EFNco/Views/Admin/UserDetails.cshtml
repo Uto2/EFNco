@@ -1,0 +1,62 @@
+@model EFNco.Models.ApplicationUser
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div style="max-width:560px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="Users" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">
+            ← Back to Users
+        </a>
+    </div>
+
+    <div class="efn-card">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);">
+            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:white;">
+                @(Model.FirstName.Length > 0 ? Model.FirstName[0].ToString().ToUpper() : "?")
+            </div>
+            <div>
+                <h2 style="font-size:20px;">@Model.FullName</h2>
+                <p style="font-size:13px;color:var(--gray-400);">@Model.Email</p>
+                @foreach (var role in ViewBag.Roles)
+                {
+                    <span class="badge @(role == "Admin" ? "badge-admin" : "badge-user")" style="margin-top:4px;">@role</span>
+                }
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Department</div>
+                <div style="font-size:14px;color:var(--gray-300);">@(Model.Department ?? "—")</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Phone</div>
+                <div style="font-size:14px;color:var(--gray-300);">@(Model.PhoneNumber ?? "—")</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Status</div>
+                <div>
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge" style="background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.2);">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge" style="background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.2);">Inactive</span>
+                    }
+                </div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Joined</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.CreatedAt.ToString("MMMM dd, yyyy")</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+            <a asp-action="EditUser" asp-route-id="@Model.Id" class="btn-efn btn-primary">Edit User</a>
+            <a asp-action="ResetUserPassword" asp-route-id="@Model.Id" class="btn-efn btn-outline">Reset Password</a>
+            <a asp-action="DeleteUser" asp-route-id="@Model.Id" class="btn-efn btn-danger">Delete</a>
+        </div>
+    </div>
+</div>

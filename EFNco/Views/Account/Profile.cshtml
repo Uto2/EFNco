@@ -1,0 +1,73 @@
+@model EFNco.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div style="max-width:680px;">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success" style="margin-bottom:24px;">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="efn-card">
+        <div class="efn-card-header">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:white;flex-shrink:0;">
+                    @(Model.FirstName.Substring(0, 1).ToUpper())@(Model.LastName.Substring(0, 1).ToUpper())
+                </div>
+                <div>
+                    <h2 style="font-size:20px;color:var(--white);">@Model.FirstName @Model.LastName</h2>
+                    <p style="font-size:13px;color:var(--gray-400);">@Model.Email</p>
+                    <p style="font-size:11px;color:var(--gray-500);margin-top:2px;">Member since @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Profile" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="field-validation-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input asp-for="Email" class="form-control" readonly style="opacity:0.6;cursor:not-allowed;" />
+                <span style="font-size:12px;color:var(--gray-500);margin-top:4px;display:block;">Email cannot be changed. Contact an administrator.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Department / Unit</label>
+                <input asp-for="Department" class="form-control" placeholder="e.g. College of Engineering" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="+63 9XX XXX XXXX" />
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <button type="submit" class="btn-efn btn-primary">Save Changes</button>
+                <a asp-action="ChangePassword" class="btn-efn btn-outline">Change Password</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,6 +1,31 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div style="max-width:720px;">
+    <div class="efn-card">
+        <div class="efn-card-header">
+            <h2 style="font-size:20px;">Privacy Policy</h2>
+            <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Last updated: @DateTime.Now.ToString("MMMM yyyy")</p>
+        </div>
+
+        <div style="font-size:14px;color:var(--gray-300);line-height:1.8;display:flex;flex-direction:column;gap:20px;">
+            <div>
+                <h3 style="font-size:15px;color:var(--white);margin-bottom:8px;">Data We Collect</h3>
+                <p>EFNco collects personal information necessary for parking permit management, including your name, email address, department, vehicle details, and access logs.</p>
+            </div>
+            <div>
+                <h3 style="font-size:15px;color:var(--white);margin-bottom:8px;">How We Use Your Data</h3>
+                <p>Your information is used solely for permit issuance, gate access verification, violation enforcement, and facility analytics within your institution.</p>
+            </div>
+            <div>
+                <h3 style="font-size:15px;color:var(--white);margin-bottom:8px;">Data Security</h3>
+                <p>All data is stored securely with industry-standard encryption. Passwords are hashed and never stored in plain text.</p>
+            </div>
+            <div>
+                <h3 style="font-size:15px;color:var(--white);margin-bottom:8px;">Contact</h3>
+                <p>For privacy concerns, contact your facility administrator.</p>
+            </div>
+        </div>
+    </div>
+</div>

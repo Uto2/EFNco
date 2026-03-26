@@ -1,38 +1,61 @@
 ﻿{
-  "$schema": "http://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:42345",
-      "sslPort": 44338
-    }
-  },
-  "profiles": {
-    "http": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "http://localhost:5092",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+    "$schema": "http://json.schemastore.org/launchsettings.json",
+    "iisSettings": {
+        "windowsAuthentication": false,
+        "anonymousAuthentication": true,
+        "iisExpress": {
+            "applicationUrl": "http://localhost:42345",
+            "sslPort": 44338
+        }
     },
-    "https": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "https://localhost:7200;http://localhost:5092",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+    "profiles": {
+        "http": {
+            "commandName": "Project",
+            "dotnetRunMessages": true,
+            "launchBrowser": true,
+            "applicationUrl": "http://localhost:5092",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        "https": {
+            "commandName": "Project",
+            "dotnetRunMessages": true,
+            "launchBrowser": true,
+            "applicationUrl": "https://localhost:7200;http://localhost:5092",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        "IIS Express": {
+            "commandName": "IISExpress",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
     },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+
+    // Auto-dismiss alerts after 5 seconds
+    "document.addEventListener('DOMContentLoaded'",
+    "function" "()",
+    {
+        "const" "alerts",
+        "=" "document.querySelectorAll('.alert-success, .alert-warning');",
+        "alerts.forEach(function" "(alert)",
+        {
+            "setTimeout(function" "()",
+            {
+                "alert.style.transition" "=",
+                "'opacity 0.4s ease';" "alert.style.opacity",
+                "=" "'0';",
+                "setTimeout(function" "()",
+                { "alert.remove();" },
+                "400);"
+            },
+            "5000);"
+        }
+        ");",
     }
-  }
+    ");",
 }

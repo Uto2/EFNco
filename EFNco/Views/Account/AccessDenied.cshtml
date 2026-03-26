@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Access Denied — EFNco</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
+    <div style="text-align:center;max-width:400px;padding:40px;">
+        <div style="font-size:64px;font-family:'Syne',sans-serif;font-weight:800;color:var(--danger);line-height:1;">403</div>
+        <h1 style="font-size:22px;margin:12px 0 8px;">Access Denied</h1>
+        <p style="color:var(--gray-400);font-size:14px;margin-bottom:28px;">You don't have permission to view this page.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn-efn btn-primary">Go to Dashboard</a>
+    </div>
+</body>
+</html>
