@@ -1,0 +1,73 @@
+@model EFNco.Models.EditUserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div style="max-width:540px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="Users" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to Users</a>
+    </div>
+
+    <div class="efn-card">
+        <div class="efn-card-header">
+            <h2 style="font-size:18px;">Edit User</h2>
+            <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">@Model.Email</p>
+        </div>
+
+        <form asp-action="EditUser" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Email" />
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="field-validation-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="field-validation-error"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Department</label>
+                <input asp-for="Department" class="form-control" placeholder="e.g. College of Engineering" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="+63 9XX XXX XXXX" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select asp-for="SelectedRole" class="form-control">
+                    <option value="">— No Role —</option>
+                    @foreach (var role in Model.AvailableRoles)
+                    {
+                        <option value="@role" selected="@(Model.CurrentRole == role)">@role</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:28px;">
+                <label class="checkbox-row">
+                    <input asp-for="IsActive" type="checkbox" />
+                    Account is Active
+                </label>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn-efn btn-primary">Save Changes</button>
+                <a asp-action="Users" class="btn-efn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

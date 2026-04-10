@@ -1,0 +1,202 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EFNco — Efficient Facility Network Control</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<div class="landing-page">
+
+    <!-- NAV -->
+    <nav class="landing-nav">
+        <a class="nav-logo" href="#">
+            <div class="nav-logo-icon">EF</div>
+            <span class="nav-logo-name">EFNco</span>
+        </a>
+        <div class="nav-links">
+            <a asp-controller="Account" asp-action="Login" class="nav-btn-login">Sign In</a>
+            <a asp-controller="Account" asp-action="Register" class="nav-btn-register">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-badge">
+            <div class="hero-badge-dot"></div>
+            Digital Parking &amp; Access Management
+        </div>
+        <h1 class="hero-title">
+            The Smarter Way to<br>
+            Manage <span>Facility Access</span>
+        </h1>
+        <p class="hero-subtitle">
+            EFNco replaces outdated sticker-based parking systems with secure digital permits,
+            real-time gate verification, and intelligent analytics — built for universities,
+            residential communities, and office facilities.
+        </p>
+        <div class="hero-cta">
+            <a asp-controller="Account" asp-action="Register" class="cta-primary">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Create Free Account
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="cta-secondary">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                </svg>
+                Sign In
+            </a>
+        </div>
+    </section>
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip">
+        <div class="strip-stat">
+            <div class="strip-stat-value"><span>100%</span></div>
+            <div class="strip-stat-label">Digital Permit Processing</div>
+        </div>
+        <div class="strip-stat">
+            <div class="strip-stat-value"><span>0</span> Stickers</div>
+            <div class="strip-stat-label">No Physical Tags Needed</div>
+        </div>
+        <div class="strip-stat">
+            <div class="strip-stat-value">Real-<span>Time</span></div>
+            <div class="strip-stat-label">Gate Monitoring</div>
+        </div>
+        <div class="strip-stat">
+            <div class="strip-stat-value"><span>24/7</span></div>
+            <div class="strip-stat-label">Automated Access Control</div>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="features">
+        <div class="section-label">What EFNco Offers</div>
+        <div class="section-title">Everything your facility needs</div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon blue">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div class="feature-title">Digital Permit Management</div>
+                <div class="feature-desc">Apply, manage, and renew parking permits entirely online. No paperwork, no stickers, no queues.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon cyan">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 4H1m18 0h.01M5 20H3m2-4H1"/>
+                    </svg>
+                </div>
+                <div class="feature-title">QR &amp; RFID Verification</div>
+                <div class="feature-desc">Secure digital permits verified instantly at gate entry points — no manual checking needed.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon green">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div class="feature-title">Real-Time Analytics</div>
+                <div class="feature-desc">Monitor vehicle entry and exit in real time. Get traffic insights to optimize your facility.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon amber">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div class="feature-title">Violation Enforcement</div>
+                <div class="feature-desc">Automated alerts for violations. Penalties tracked and enforced without manual intervention.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon purple">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div class="feature-title">Authorized Person Access</div>
+                <div class="feature-desc">Allow trusted individuals to use a registered vehicle under verified conditions.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon rose">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="feature-title">Parking Duration Tracking</div>
+                <div class="feature-desc">Automatically log and monitor how long each vehicle stays. Enforce time limits easily.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section">
+        <div class="how-inner">
+            <div class="section-label">Simple Process</div>
+            <div class="section-title">How EFNco Works</div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-title">Create Account</div>
+                    <div class="step-desc">Register with your email and department. Your profile is verified by the facility admin.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-title">Apply for Permit</div>
+                    <div class="step-desc">Submit your vehicle details and permit type online. Track your application in real time.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-title">Get Digital Permit</div>
+                    <div class="step-desc">Once approved, receive your QR-based digital permit. Your phone is your pass.</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-title">Drive In &amp; Out</div>
+                    <div class="step-desc">Scan at the gate for instant automated verification. Entry and exit logged automatically.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2>Ready to modernize your parking?</h2>
+        <p>Join EFNco today and experience hassle-free, digital facility access management.</p>
+        <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+            <a asp-controller="Account" asp-action="Register" class="cta-primary">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Create Account — It's Free
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="cta-secondary">
+                Already have an account? Sign In →
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="landing-footer">
+        <span>© @DateTime.Now.Year <strong style="color:var(--gray-300);">EFNco</strong> — Efficient Facility Network Control</span>
+        <div style="display:flex;gap:20px;">
+            <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+            <a asp-controller="Account" asp-action="Login">Sign In</a>
+            <a asp-controller="Account" asp-action="Register">Register</a>
+        </div>
+    </footer>
+
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+</body>
+</html>
