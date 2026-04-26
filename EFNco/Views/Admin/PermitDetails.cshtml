@@ -1,0 +1,132 @@
+@model EFNco.Models.ReviewPermitViewModel
+@{
+    ViewData["Title"] = "Review Permit";
+    var statusStyle = Model.Status switch {
+        EFNco.Models.PermitStatus.Approved => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+        EFNco.Models.PermitStatus.Pending  => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+        EFNco.Models.PermitStatus.Rejected => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        EFNco.Models.PermitStatus.Revoked  => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        _ => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+    };
+}
+
+<div style="max-width:640px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="Permits" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to Permits</a>
+    </div>
+
+    <!-- Permit Summary -->
+    <div class="efn-card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            <div>
+                <h2 style="font-size:20px;font-family:'Syne',sans-serif;">Permit #@Model.PermitId</h2>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">Applied @Model.AppliedAt.ToString("MMMM dd, yyyy")</p>
+            </div>
+            <span class="badge" style="@statusStyle;font-size:13px;padding:5px 14px;">@Model.Status</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Applicant</div>
+                <div style="font-size:14px;color:var(--white);font-weight:500;">@Model.ApplicantName</div>
+                <div style="font-size:12px;color:var(--gray-400);">@Model.ApplicantEmail</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Permit Type</div>
+                <span class="badge badge-admin" style="font-size:12px;">@Model.PermitType</span>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Plate Number</div>
+                <div style="font-size:16px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">@Model.PlateNumber</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Vehicle</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.VehicleDisplay</div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Purpose))
+        {
+            <div style="padding:12px;background:var(--navy);border-radius:8px;margin-bottom:16px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Applicant Notes</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Purpose</div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Remarks) && Model.Status != EFNco.Models.PermitStatus.Pending)
+        {
+            <div style="padding:12px;background:var(--navy);border-radius:8px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Admin Remarks</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Remarks</div>
+            </div>
+        }
+    </div>
+
+    <!-- Admin Actions -->
+    @if (Model.Status == EFNco.Models.PermitStatus.Pending)
+    {
+        <!-- APPROVE -->
+        <div class="efn-card" style="margin-bottom:16px;border-color:rgba(16,185,129,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--success);">✓ Approve Permit</h3>
+            </div>
+            <form asp-action="ApprovePermit" asp-route-id="@Model.PermitId" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Valid From</label>
+                        <input type="date" name="validFrom" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Valid Until</label>
+                        <input type="date" name="validUntil" class="form-control" value="@DateTime.Today.AddYears(1).ToString("yyyy-MM-dd")" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Remarks <span style="color:var(--gray-500)">(Optional)</span></label>
+                    <textarea name="remarks" class="form-control" rows="2" placeholder="Any notes for the applicant..."></textarea>
+                </div>
+                <button type="submit" class="btn-efn" style="background:var(--success);color:var(--navy);font-weight:600;">
+                    Approve Permit
+                </button>
+            </form>
+        </div>
+
+        <!-- REJECT -->
+        <div class="efn-card" style="border-color:rgba(239,68,68,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--danger);">✕ Reject Permit</h3>
+            </div>
+            <form asp-action="RejectPermit" asp-route-id="@Model.PermitId" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label">Reason for Rejection <span style="color:var(--gray-500)">(Optional)</span></label>
+                    <textarea name="remarks" class="form-control" rows="2" placeholder="Explain why the permit was rejected..."></textarea>
+                </div>
+                <button type="submit" class="btn-efn btn-danger" style="padding:10px 20px;">
+                    Reject Permit
+                </button>
+            </form>
+        </div>
+    }
+    @if (Model.Status == EFNco.Models.PermitStatus.Approved)
+    {
+        <!-- REVOKE -->
+        <div class="efn-card" style="border-color:rgba(239,68,68,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--danger);">Revoke Permit</h3>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Revoking will immediately invalidate this permit.</p>
+            </div>
+            <form asp-action="RevokePermit" asp-route-id="@Model.PermitId" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label">Reason <span style="color:var(--gray-500)">(Optional)</span></label>
+                    <textarea name="remarks" class="form-control" rows="2" placeholder="Reason for revoking..."></textarea>
+                </div>
+                <button type="submit" class="btn-efn btn-danger" style="padding:10px 20px;">
+                    Revoke Permit
+                </button>
+            </form>
+        </div>
+    }
+</div>

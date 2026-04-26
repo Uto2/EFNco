@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using EFNco.Data;
 using EFNco.Models;
 
 namespace EFNco.Controllers
@@ -7,23 +9,30 @@ namespace EFNco.Controllers
     public class HomeController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _db;
 
-        public HomeController(UserManager<ApplicationUser> userManager)
+        public HomeController(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
         {
             _userManager = userManager;
+            _db = db;
         }
 
         public async Task<IActionResult> Index()
         {
-            // Unauthenticated users see the public landing page
             if (User.Identity == null || !User.Identity.IsAuthenticated)
                 return View("Landing");
 
-            // Authenticated users see the dashboard
             var user = await _userManager.GetUserAsync(User);
             var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             ViewBag.UserName = user?.FullName ?? "User";
             ViewBag.Role = roles.FirstOrDefault() ?? "User";
+
+            // Dashboard stats
+            ViewBag.ActivePermits   = await _db.ParkingPermits.CountAsync(p => p.Status == PermitStatus.Approved);
+            ViewBag.PendingPermits  = await _db.ParkingPermits.CountAsync(p => p.Status == PermitStatus.Pending);
+            ViewBag.TotalUsers      = await _userManager.Users.CountAsync();
+            ViewBag.TotalViolations = 0; // Sprint 6
+
             return View();
         }
 

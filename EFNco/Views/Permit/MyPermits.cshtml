@@ -1,0 +1,102 @@
+@model List<EFNco.Models.MyPermitViewModel>
+@{
+    ViewData["Title"] = "My Permits";
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <div>
+        <h2 style="font-size:18px;">My Permits</h2>
+        <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">@Model.Count permit(s) on your account</p>
+    </div>
+    @{
+        bool hasActive = Model.Any(p => p.Status == EFNco.Models.PermitStatus.Pending || p.Status == EFNco.Models.PermitStatus.Approved);
+    }
+    @if (!hasActive)
+    {
+        <a asp-action="Apply" class="btn-efn btn-primary">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Apply for Permit
+        </a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="efn-card" style="text-align:center;padding:60px 24px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="var(--gray-500)" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+        </div>
+        <h3 style="font-size:17px;margin-bottom:8px;">No permits yet</h3>
+        <p style="color:var(--gray-400);font-size:14px;margin-bottom:24px;">You haven't applied for a parking permit yet.</p>
+        <a asp-action="Apply" class="btn-efn btn-primary">Apply for Permit</a>
+    </div>
+}
+else
+{
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        @foreach (var permit in Model)
+        {
+            var statusColor = permit.Status switch {
+                EFNco.Models.PermitStatus.Approved => "rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+                EFNco.Models.PermitStatus.Pending  => "rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+                EFNco.Models.PermitStatus.Rejected => "rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+                EFNco.Models.PermitStatus.Revoked  => "rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+                EFNco.Models.PermitStatus.Expired  => "rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)",
+                _ => "rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+            };
+
+            <div class="efn-card" style="padding:20px 24px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                    <div style="display:flex;gap:16px;align-items:flex-start;">
+                        <div style="width:44px;height:44px;border-radius:10px;background:rgba(37,99,235,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            @if (permit.VehicleDisplay.Contains("Motorcycle"))
+                            {
+                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--blue-glow)" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                                </svg>
+                            }
+                            else
+                            {
+                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--blue-glow)" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                                </svg>
+                            }
+                        </div>
+                        <div>
+                            <div style="font-size:16px;font-weight:600;color:var(--white);font-family:'Syne',sans-serif;">@permit.PlateNumber</div>
+                            <div style="font-size:13px;color:var(--gray-400);margin-top:2px;">@permit.VehicleDisplay</div>
+                            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                                <span class="badge badge-admin">@permit.PermitType</span>
+                                <span class="badge" style="background:@statusColor;">@permit.Status</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;font-size:13px;color:var(--gray-400);">
+                        <div>Applied: @permit.AppliedAt.ToString("MMM dd, yyyy")</div>
+                        @if (permit.ValidFrom.HasValue && permit.ValidUntil.HasValue)
+                        {
+                            <div style="margin-top:4px;color:var(--gray-300);">
+                                Valid: @permit.ValidFrom.Value.ToString("MMM dd") – @permit.ValidUntil.Value.ToString("MMM dd, yyyy")
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(permit.Remarks))
+                        {
+                            <div style="margin-top:4px;color:var(--gray-500);font-style:italic;max-width:220px;">@permit.Remarks</div>
+                        }
+                    </div>
+                </div>
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;">
+                    <a asp-action="Details" asp-route-id="@permit.PermitId" class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">View Details</a>
+                    @if (permit.Status == EFNco.Models.PermitStatus.Pending)
+                    {
+                        <a asp-action="Cancel" asp-route-id="@permit.PermitId" class="btn-efn btn-danger" style="padding:6px 14px;font-size:13px;">Cancel</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
