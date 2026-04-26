@@ -204,6 +204,10 @@ namespace EFNco.Controllers
             return View(permits);
         }
 
+        // ── GET: /Admin/PermitDetails/{id} ───────────────────
+        // Replace ONLY this action in your existing AdminController.cs
+        // Everything else in AdminController stays the same.
+
         public async Task<IActionResult> PermitDetails(int id)
         {
             var permit = await _db.ParkingPermits
@@ -216,18 +220,24 @@ namespace EFNco.Controllers
 
             var model = new ReviewPermitViewModel
             {
-                PermitId       = permit.Id,
-                ApplicantName  = permit.Applicant!.FullName,
+                PermitId = permit.Id,
+                ApplicantName = permit.Applicant!.FullName,
                 ApplicantEmail = permit.Applicant.Email ?? "",
-                PlateNumber    = permit.Vehicle!.PlateNumber,
+                PlateNumber = permit.Vehicle!.PlateNumber,
                 VehicleDisplay = $"{permit.Vehicle.Make} {permit.Vehicle.Model} ({permit.Vehicle.VehicleType})",
-                PermitType     = permit.PermitType,
-                Status         = permit.Status,
-                AppliedAt      = permit.AppliedAt,
-                Purpose        = permit.Purpose,
-                ValidFrom      = permit.ValidFrom,
-                ValidUntil     = permit.ValidUntil,
-                Remarks        = permit.Remarks
+                PermitType = permit.PermitType,
+                Status = permit.Status,
+                AppliedAt = permit.AppliedAt,
+                Purpose = permit.Purpose,
+                ValidFrom = permit.ValidFrom,
+                ValidUntil = permit.ValidUntil,
+                Remarks = permit.Remarks,
+
+                // ✅ These were missing — causing "No documents" to always show
+                HasLicensePhoto = permit.LicensePhotoData != null,
+                LicensePhotoFileName = permit.LicensePhotoFileName,
+                HasRegistrationFile = permit.RegistrationFileData != null,
+                RegistrationFileName = permit.RegistrationFileName,
             };
 
             return View(model);
