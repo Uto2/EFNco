@@ -10,20 +10,20 @@
             </svg>
         </div>
         <div>
-            <div class="stat-value">—</div>
+            <div class="stat-value">@ViewBag.ActivePermits</div>
             <div class="stat-label">Active Permits</div>
         </div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon cyan">
+        <div class="stat-icon amber">
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
         </div>
         <div>
-            <div class="stat-value">—</div>
-            <div class="stat-label">Today's Entries</div>
+            <div class="stat-value">@ViewBag.PendingPermits</div>
+            <div class="stat-label">Pending Approvals</div>
         </div>
     </div>
 
@@ -34,19 +34,19 @@
             </svg>
         </div>
         <div>
-            <div class="stat-value">—</div>
+            <div class="stat-value">@ViewBag.TotalUsers</div>
             <div class="stat-label">Registered Users</div>
         </div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon amber">
+        <div class="stat-icon cyan">
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
         </div>
         <div>
-            <div class="stat-value">—</div>
+            <div class="stat-value">@ViewBag.TotalViolations</div>
             <div class="stat-label">Violations</div>
         </div>
     </div>
@@ -61,63 +61,28 @@
             </svg>
         </div>
         <div>
-            <h2 style="font-size:20px;margin-bottom:6px;">Welcome to EFNco, @ViewBag.UserName! 👋</h2>
+            <h2 style="font-size:20px;margin-bottom:6px;">Welcome back, @ViewBag.UserName! 👋</h2>
             <p style="color:var(--gray-400);font-size:14px;line-height:1.7;">
                 You're signed in as <span class="badge badge-@(ViewBag.Role?.ToString().ToLower() == "admin" ? "admin" : "user")">@ViewBag.Role</span>.
                 EFNco is your digital hub for parking permit applications, access management, and real-time vehicle monitoring.
-                More features will be unlocked as sprints are completed.
             </p>
             <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
-                <a asp-controller="Account" asp-action="Profile" class="btn-efn btn-primary">
+                <a asp-controller="Permit" asp-action="MyPermits" class="btn-efn btn-primary">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    View My Profile
+                    My Permits
                 </a>
                 @if (User.IsInRole("Admin"))
                 {
-                    <a asp-controller="Admin" asp-action="Users" class="btn-efn btn-outline">
+                    <a asp-controller="Admin" asp-action="Permits" class="btn-efn btn-outline">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
-                        Manage Users
+                        Review Permits
                     </a>
                 }
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Upcoming Sprints -->
-<div style="margin-top:28px;">
-    <h3 style="font-size:15px;color:var(--gray-400);margin-bottom:16px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;font-size:11px;">PROJECT ROADMAP</h3>
-    <div style="display:flex;flex-direction:column;gap:10px;max-width:600px;">
-        @{
-            var sprints = new[] {
-                new { num = 1, name = "Login & Register", status = "done" },
-                new { num = 2, name = "Permit Application & Management", status = "upcoming" },
-                new { num = 3, name = "QR / Digital Permit Generation", status = "upcoming" },
-                new { num = 4, name = "Gate Verification & Entry/Exit Logging", status = "upcoming" },
-                new { num = 5, name = "Admin Dashboard & Analytics", status = "upcoming" },
-                new { num = 6, name = "Violation Notifications & Enforcement", status = "upcoming" },
-                new { num = 7, name = "Authorized Person Access & Duration Tracking", status = "upcoming" },
-            };
-        }
-        @foreach (var sprint in sprints)
-        {
-            <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:var(--radius-sm);background:var(--navy-light);border:1px solid var(--border);">
-                <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Syne',sans-serif;flex-shrink:0;
-                    @(sprint.status == "done" ? "background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.3);" : "background:var(--navy-mid);color:var(--gray-500);border:1px solid var(--border);")">
-                    @if (sprint.status == "done") { <span>✓</span> } else { <span>@sprint.num</span> }
-                </div>
-                <span style="font-size:14px;color:@(sprint.status == "done" ? "var(--white)" : "var(--gray-500)");">
-                    Sprint @sprint.num — @sprint.name
-                </span>
-                @if (sprint.status == "done")
-                {
-                    <span class="badge" style="margin-left:auto;background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.2);">Complete</span>
-                }
-            </div>
-        }
     </div>
 </div>

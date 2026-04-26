@@ -1,0 +1,98 @@
+@model EFNco.Models.ParkingPermit
+@{
+    ViewData["Title"] = "Permit Details";
+    var statusColor = Model.Status switch {
+        EFNco.Models.PermitStatus.Approved => "rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+        EFNco.Models.PermitStatus.Pending  => "rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+        EFNco.Models.PermitStatus.Rejected => "rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        EFNco.Models.PermitStatus.Revoked  => "rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        EFNco.Models.PermitStatus.Expired  => "rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)",
+        _ => "rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+    };
+}
+
+<div style="max-width:600px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="MyPermits" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to My Permits</a>
+    </div>
+
+    <div class="efn-card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            <div>
+                <h2 style="font-size:20px;font-family:'Syne',sans-serif;">Permit #@Model.Id</h2>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Applied @Model.AppliedAt.ToString("MMMM dd, yyyy")</p>
+            </div>
+            <span class="badge" style="background:@statusColor;font-size:13px;padding:5px 14px;">@Model.Status</span>
+        </div>
+
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-500);margin-bottom:12px;">Vehicle</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Plate Number</div>
+                <div style="font-size:15px;font-weight:600;color:var(--white);font-family:'Syne',sans-serif;">@Model.Vehicle!.PlateNumber</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Type</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Vehicle.VehicleType</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Make & Model</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Vehicle.Make @Model.Vehicle.Model</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Year / Color</div>
+                <div style="font-size:14px;color:var(--gray-300);">@(Model.Vehicle.Year ?? "—") / @(Model.Vehicle.Color ?? "—")</div>
+            </div>
+        </div>
+
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-500);margin-bottom:12px;">Permit</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Permit Type</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.PermitType</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Status</div>
+                <span class="badge" style="background:@statusColor;">@Model.Status</span>
+            </div>
+            @if (Model.ValidFrom.HasValue)
+            {
+                <div>
+                    <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Valid From</div>
+                    <div style="font-size:14px;color:var(--gray-300);">@Model.ValidFrom.Value.ToString("MMMM dd, yyyy")</div>
+                </div>
+            }
+            @if (Model.ValidUntil.HasValue)
+            {
+                <div>
+                    <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Valid Until</div>
+                    <div style="font-size:14px;color:var(--gray-300);">@Model.ValidUntil.Value.ToString("MMMM dd, yyyy")</div>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Purpose))
+        {
+            <div style="margin-bottom:16px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Your Notes</div>
+                <div style="font-size:14px;color:var(--gray-300);background:var(--navy);padding:12px;border-radius:8px;">@Model.Purpose</div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Remarks))
+        {
+            <div style="margin-bottom:16px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Admin Remarks</div>
+                <div style="font-size:14px;color:var(--gray-300);background:var(--navy);padding:12px;border-radius:8px;">@Model.Remarks</div>
+            </div>
+        }
+
+        @if (Model.ReviewedBy != null)
+        {
+            <div style="font-size:12px;color:var(--gray-500);padding-top:12px;border-top:1px solid var(--border);">
+                Reviewed by <strong style="color:var(--gray-400);">@Model.ReviewedBy.FullName</strong>
+                on @Model.ReviewedAt?.ToString("MMMM dd, yyyy")
+            </div>
+        }
+    </div>
+</div>

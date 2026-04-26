@@ -1,0 +1,77 @@
+@model List<EFNco.Models.AdminPermitListViewModel>
+@{
+    ViewData["Title"] = "Manage Permits";
+    var statuses = new[] { "All", "Pending", "Approved", "Rejected", "Revoked", "Expired" };
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h2 style="font-size:18px;">All Permits</h2>
+        <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">@Model.Count permit(s) found</p>
+    </div>
+    <!-- Status Filter -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        @foreach (var s in statuses)
+        {
+            <a asp-action="Permits" asp-route-status="@(s == "All" ? "" : s)"
+               style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;
+               @(ViewBag.CurrentStatus == s ? "background:var(--blue);color:white;" : "background:var(--navy-light);color:var(--gray-300);border:1px solid var(--border);")">
+                @s
+            </a>
+        }
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="efn-card" style="text-align:center;padding:48px 24px;">
+        <p style="color:var(--gray-400);font-size:14px;">No permits found for the selected filter.</p>
+    </div>
+}
+else
+{
+    <div class="efn-card" style="padding:0;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid var(--border);">
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">#</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Applicant</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Vehicle</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Type</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Status</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Applied</th>
+                    <th style="padding:14px 20px;text-align:right;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    var statusStyle = p.Status switch {
+                        EFNco.Models.PermitStatus.Approved => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+                        EFNco.Models.PermitStatus.Pending  => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+                        EFNco.Models.PermitStatus.Rejected => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+                        EFNco.Models.PermitStatus.Revoked  => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+                        _ => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+                    };
+                    <tr style="border-bottom:1px solid var(--border);transition:background 0.15s;" onmouseover="this.style.background='var(--navy-light)'" onmouseout="this.style.background=''">
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-500);">#@p.PermitId</td>
+                        <td style="padding:14px 20px;">
+                            <div style="font-size:14px;font-weight:500;color:var(--white);">@p.ApplicantName</div>
+                            <div style="font-size:12px;color:var(--gray-400);">@p.ApplicantEmail</div>
+                        </td>
+                        <td style="padding:14px 20px;">
+                            <div style="font-size:14px;font-weight:600;color:var(--white);font-family:'Syne',sans-serif;">@p.PlateNumber</div>
+                            <div style="font-size:12px;color:var(--gray-400);">@p.VehicleDisplay</div>
+                        </td>
+                        <td style="padding:14px 20px;"><span class="badge badge-admin">@p.PermitType</span></td>
+                        <td style="padding:14px 20px;"><span class="badge" style="@statusStyle">@p.Status</span></td>
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-400);">@p.AppliedAt.ToString("MMM dd, yyyy")</td>
+                        <td style="padding:14px 20px;text-align:right;">
+                            <a asp-action="PermitDetails" asp-route-id="@p.PermitId" class="btn-efn btn-primary" style="padding:6px 14px;font-size:12px;">Review</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
