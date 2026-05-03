@@ -44,11 +44,11 @@ namespace EFNco.Models
         [Required(ErrorMessage = "Make is required.")]
         [StringLength(50)]
         [Display(Name = "Make (Brand)")]
-        public string Make { get; set; } = string.Empty;  // e.g. Toyota
+        public string Make { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Model is required.")]
         [StringLength(50)]
-        public string Model { get; set; } = string.Empty; // e.g. Vios
+        public string Model { get; set; } = string.Empty;
 
         [StringLength(4)]
         public string? Year { get; set; }
@@ -95,11 +95,31 @@ namespace EFNco.Models
 
         [StringLength(500)]
         [Display(Name = "Remarks")]
-        public string? Remarks { get; set; }  // Admin notes on approve/reject
+        public string? Remarks { get; set; }
 
         [StringLength(500)]
         [Display(Name = "Purpose / Notes")]
-        public string? Purpose { get; set; }  // Applicant's notes
+        public string? Purpose { get; set; }
+
+        // ── License Photo ────────────────────────────────────
+        [Display(Name = "License Photo")]
+        public byte[]? LicensePhotoData { get; set; }
+
+        [StringLength(255)]
+        public string? LicensePhotoFileName { get; set; }
+
+        [StringLength(100)]
+        public string? LicensePhotoContentType { get; set; }
+
+        // ── Vehicle Registration (OR/CR) ─────────────────────
+        [Display(Name = "Vehicle Registration (OR/CR)")]
+        public byte[]? RegistrationFileData { get; set; }
+
+        [StringLength(255)]
+        public string? RegistrationFileName { get; set; }
+
+        [StringLength(100)]
+        public string? RegistrationFileContentType { get; set; }
 
         // Reviewed by
         public string? ReviewedByUserId { get; set; }
@@ -114,7 +134,7 @@ namespace EFNco.Models
         [ForeignKey("VehicleId")]
         public virtual Vehicle? Vehicle { get; set; }
 
-        // Applicant FK (denormalized for easy querying)
+        // Applicant FK
         [Required]
         public string UserId { get; set; } = string.Empty;
 

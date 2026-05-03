@@ -72,6 +72,15 @@ else
                             <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
                                 <span class="badge badge-admin">@permit.PermitType</span>
                                 <span class="badge" style="background:@statusColor;">@permit.Status</span>
+                                @* ✅ Document badges *@
+                                @if (permit.HasLicensePhoto)
+                                {
+                                    <span class="badge" style="background:rgba(37,99,235,0.1);color:var(--blue-glow);border:1px solid rgba(37,99,235,0.25);">🪪 License</span>
+                                }
+                                @if (permit.HasRegistrationFile)
+                                {
+                                    <span class="badge" style="background:rgba(37,99,235,0.1);color:var(--blue-glow);border:1px solid rgba(37,99,235,0.25);">📋 OR/CR</span>
+                                }
                             </div>
                         </div>
                     </div>
@@ -89,8 +98,26 @@ else
                         }
                     </div>
                 </div>
-                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;">
+
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
                     <a asp-action="Details" asp-route-id="@permit.PermitId" class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">View Details</a>
+
+                    @* ✅ Direct document view links for the user *@
+                    @if (permit.HasLicensePhoto)
+                    {
+                        <a href="/Permit/ViewFile/@permit.PermitId?type=license" target="_blank"
+                           class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">
+                            🪪 View License
+                        </a>
+                    }
+                    @if (permit.HasRegistrationFile)
+                    {
+                        <a href="/Permit/ViewFile/@permit.PermitId?type=registration" target="_blank"
+                           class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">
+                            📋 View OR/CR
+                        </a>
+                    }
+
                     @if (permit.Status == EFNco.Models.PermitStatus.Pending)
                     {
                         <a asp-action="Cancel" asp-route-id="@permit.PermitId" class="btn-efn btn-danger" style="padding:6px 14px;font-size:13px;">Cancel</a>
