@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EFNco.Data;
 using EFNco.Models;
+using QRCoder;
 
 namespace EFNco.Controllers
 {
@@ -232,6 +233,7 @@ namespace EFNco.Controllers
                 ValidFrom = permit.ValidFrom,
                 ValidUntil = permit.ValidUntil,
                 Remarks = permit.Remarks,
+                HasQRCode = permit.QRCodeData != null,  // Sprint 3 addition
 
                 // ✅ These were missing — causing "No documents" to always show
                 HasLicensePhoto = permit.LicensePhotoData != null,
@@ -243,26 +245,36 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // POST: Approve permit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApprovePermit(int id, DateTime validFrom, DateTime validUntil, string? remarks)
         {
-            var permit = await _db.ParkingPermits.FindAsync(id);
+            var permit = await _db.ParkingPermits
+                .Include(p => p.Vehicle)
+                .Include(p => p.Applicant)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (permit == null) return NotFound();
 
             var admin = await _userManager.GetUserAsync(User);
 
-            permit.Status           = PermitStatus.Approved;
-            permit.ReviewedAt       = DateTime.UtcNow;
-            permit.ValidFrom        = validFrom;
-            permit.ValidUntil       = validUntil;
-            permit.Remarks          = remarks;
+            permit.Status = PermitStatus.Approved;
+            permit.ReviewedAt = DateTime.UtcNow;
+            permit.ValidFrom = validFrom;
+            permit.ValidUntil = validUntil;
+            permit.Remarks = remarks;
             permit.ReviewedByUserId = admin!.Id;
+
+            // Generate QR Code
+            var qrPayload = $"EFNCO|{permit.Id}|{permit.Vehicle!.PlateNumber}|{validUntil:yyyy-MM-dd}";
+            using var qrGenerator = new QRCodeGenerator();
+            var qrData = qrGenerator.CreateQrCode(qrPayload, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new PngByteQRCode(qrData);
+            permit.QRCodeData = qrCode.GetGraphic(10);
 
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = $"Permit #{id} approved successfully.";
+            TempData["Success"] = $"Permit #{id} approved and QR code generated.";
             return RedirectToAction("Permits");
         }
 

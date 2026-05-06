@@ -113,5 +113,9 @@ namespace EFNco.Models
         [StringLength(500)]
         [Display(Name = "Remarks (optional)")]
         public string? Remarks { get; set; }
+
+        // Sprint 3 addition
+        public bool HasQRCode { get; set; }
+
     }
 }

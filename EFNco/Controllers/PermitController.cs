@@ -257,5 +257,71 @@ namespace EFNco.Controllers
             TempData["Success"] = "Permit application cancelled.";
             return RedirectToAction("MyPermits");
         }
+
+        // GET: /Permit/QRView/{id}
+        public async Task<IActionResult> QRView(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var permit = await _db.ParkingPermits
+                .Include(p => p.Vehicle)
+                .Include(p => p.Applicant)
+                .FirstOrDefaultAsync(p => p.Id == id && (isAdmin || p.UserId == user.Id));
+
+            if (permit == null) return NotFound();
+
+            if (permit.Status != PermitStatus.Approved || permit.QRCodeData == null)
+            {
+                TempData["Error"] = "QR code is only available for approved permits.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            return View(permit);
+        }
+
+        // GET: /Permit/QRImage/{id}
+        public async Task<IActionResult> QRImage(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var permit = await _db.ParkingPermits
+                .FirstOrDefaultAsync(p => p.Id == id && (isAdmin || p.UserId == user.Id));
+
+            if (permit == null || permit.QRCodeData == null)
+                return NotFound();
+
+            return File(permit.QRCodeData, "image/png");
+        }
+
+        // GET: /Permit/PrintPermit/{id}
+        public async Task<IActionResult> PrintPermit(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var isAdmin = User.IsInRole("Admin");
+
+            var permit = await _db.ParkingPermits
+                .Include(p => p.Vehicle)
+                .Include(p => p.Applicant)
+                .Include(p => p.ReviewedBy)
+                .FirstOrDefaultAsync(p => p.Id == id && (isAdmin || p.UserId == user.Id));
+
+            if (permit == null) return NotFound();
+
+            if (permit.Status != PermitStatus.Approved || permit.QRCodeData == null)
+            {
+                TempData["Error"] = "Printable permit is only available for approved permits.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            return View(permit);
+        }
     }
 }
