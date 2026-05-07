@@ -323,5 +323,27 @@ namespace EFNco.Controllers
 
             return View(permit);
         }
+
+        // ── GET: /Permit/Verify/{token} ───────────────────────
+        // ✅ PUBLIC endpoint — no login required.
+        // This is what the QR code opens when scanned.
+        // A guard or anyone with a phone can verify a permit instantly.
+
+        [AllowAnonymous]
+        public async Task<IActionResult> Verify(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return View("VerifyResult", (object)"invalid");
+
+            var permit = await _db.ParkingPermits
+                .Include(p => p.Vehicle)
+                .Include(p => p.Applicant)
+                .FirstOrDefaultAsync(p => p.QRToken == token);
+
+            if (permit == null)
+                return View("VerifyResult", (object)"notfound");
+
+            return View("VerifyResult", permit);
+        }
     }
 }

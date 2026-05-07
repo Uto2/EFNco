@@ -1,188 +1,110 @@
 @model EFNco.Models.ReviewPermitViewModel
 @{
     ViewData["Title"] = "Review Permit";
-
-    var statusStyle = Model.Status switch
-    {
+    var statusStyle = Model.Status switch {
         EFNco.Models.PermitStatus.Approved => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
-        EFNco.Models.PermitStatus.Pending => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+        EFNco.Models.PermitStatus.Pending  => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
         EFNco.Models.PermitStatus.Rejected => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
-        EFNco.Models.PermitStatus.Revoked => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        EFNco.Models.PermitStatus.Revoked  => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
         _ => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
     };
 }
 
-<div style="max-width:640px;">
+@* ── Confirmation modal ── *@
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;align-items:center;justify-content:center;">
+    <div style="background:var(--navy-light);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:380px;width:90%;margin:auto;">
+        <h3 id="confirmTitle" style="font-size:17px;margin-bottom:8px;font-family:'Syne',sans-serif;"></h3>
+        <p id="confirmMsg" style="font-size:14px;color:var(--gray-400);margin-bottom:24px;"></p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeConfirm()" class="btn-efn btn-outline" style="padding:8px 18px;">Cancel</button>
+            <button id="confirmBtn" class="btn-efn btn-danger" style="padding:8px 18px;">Confirm</button>
+        </div>
+    </div>
+</div>
 
+<div style="max-width:640px;">
     <div style="margin-bottom:20px;">
-        <a asp-action="Permits"
-           class="btn-efn btn-outline"
-           style="padding:7px 14px;font-size:13px;">
-            ← Back to Permits
-        </a>
+        <a asp-action="Permits" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to Permits</a>
     </div>
 
     @* ── Permit Summary ── *@
     <div class="efn-card" style="margin-bottom:16px;">
-
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
             <div>
-                <h2 style="font-size:20px;font-family:'Syne',sans-serif;">
-                    Permit #@Model.PermitId
-                </h2>
-
-                <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">
-                    Applied @Model.AppliedAt.ToString("MMMM dd, yyyy")
-                </p>
+                <h2 style="font-size:20px;font-family:'Syne',sans-serif;">Permit #@Model.PermitId</h2>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">Applied @Model.AppliedAt.ToString("MMMM dd, yyyy")</p>
             </div>
-
-            <span class="badge"
-                  style="@statusStyle;font-size:13px;padding:5px 14px;">
-                @Model.Status
-            </span>
+            <span class="badge" style="@statusStyle;font-size:13px;padding:5px 14px;">@Model.Status</span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-
             <div>
-                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">
-                    Applicant
-                </div>
-
-                <div style="font-size:14px;color:var(--white);font-weight:500;">
-                    @Model.ApplicantName
-                </div>
-
-                <div style="font-size:12px;color:var(--gray-400);">
-                    @Model.ApplicantEmail
-                </div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Applicant</div>
+                <div style="font-size:14px;color:var(--white);font-weight:500;">@Model.ApplicantName</div>
+                <div style="font-size:12px;color:var(--gray-400);">@Model.ApplicantEmail</div>
             </div>
-
             <div>
-                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">
-                    Permit Type
-                </div>
-
-                <span class="badge badge-admin" style="font-size:12px;">
-                    @Model.PermitType
-                </span>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Permit Type</div>
+                <span class="badge badge-admin" style="font-size:12px;">@Model.PermitType</span>
             </div>
-
             <div>
-                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">
-                    Plate Number
-                </div>
-
-                <div style="font-size:16px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">
-                    @Model.PlateNumber
-                </div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Plate Number</div>
+                <div style="font-size:16px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">@Model.PlateNumber</div>
             </div>
-
             <div>
-                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">
-                    Vehicle
-                </div>
-
-                <div style="font-size:14px;color:var(--gray-300);">
-                    @Model.VehicleDisplay
-                </div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Vehicle</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.VehicleDisplay</div>
             </div>
         </div>
 
         @if (!string.IsNullOrEmpty(Model.Purpose))
         {
             <div style="padding:12px;background:var(--navy);border-radius:8px;margin-bottom:16px;">
-
-                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
-                    Applicant Notes
-                </div>
-
-                <div style="font-size:14px;color:var(--gray-300);">
-                    @Model.Purpose
-                </div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Applicant Notes</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Purpose</div>
             </div>
         }
 
-        @if (!string.IsNullOrEmpty(Model.Remarks) &&
-        Model.Status != EFNco.Models.PermitStatus.Pending)
+        @if (!string.IsNullOrEmpty(Model.Remarks) && Model.Status != EFNco.Models.PermitStatus.Pending)
         {
             <div style="padding:12px;background:var(--navy);border-radius:8px;">
-
-                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
-                    Admin Remarks
-                </div>
-
-                <div style="font-size:14px;color:var(--gray-300);">
-                    @Model.Remarks
-                </div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Admin Remarks</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Remarks</div>
             </div>
         }
     </div>
 
     @* ── Submitted Documents ── *@
     <div class="efn-card" style="margin-bottom:16px;">
-
         <div class="efn-card-header">
-            <h3 style="font-size:15px;color:var(--white);">
-                📎 Submitted Documents
-            </h3>
+            <h3 style="font-size:15px;color:var(--white);">📎 Submitted Documents</h3>
         </div>
 
         @if (!Model.HasLicensePhoto && !Model.HasRegistrationFile)
         {
-            <p style="font-size:13px;color:var(--gray-500);margin:0;">
-                No documents were uploaded with this application.
-            </p>
+            <p style="font-size:13px;color:var(--gray-500);margin:0;">No documents were uploaded with this application.</p>
         }
         else
         {
             <div style="display:flex;flex-direction:column;gap:16px;">
-
                 @if (Model.HasLicensePhoto)
                 {
                     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-
                         <div style="padding:10px 16px;background:var(--navy-light);display:flex;justify-content:space-between;align-items:center;">
-
                             <div style="display:flex;align-items:center;gap:10px;">
-
-                                <svg width="18"
-                                     height="18"
-                                     fill="none"
-                                     viewBox="0 0 24 24"
-                                     stroke="var(--blue-glow)"
-                                     stroke-width="1.8">
-
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--blue-glow)" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
-
                                 <div>
-                                    <div style="font-size:13px;font-weight:500;color:var(--white);">
-                                        Driver's License
-                                    </div>
-
-                                    <div style="font-size:11px;color:var(--gray-400);">
-                                        @(Model.LicensePhotoFileName ?? "license-photo")
-                                    </div>
+                                    <div style="font-size:13px;font-weight:500;color:var(--white);">Driver's License</div>
+                                    <div style="font-size:11px;color:var(--gray-400);">@(Model.LicensePhotoFileName ?? "license-photo")</div>
                                 </div>
                             </div>
-
-                            <a href="/Permit/ViewFile/@Model.PermitId?type=license"
-                               target="_blank"
-                               class="btn-efn btn-outline"
-                               style="padding:5px 14px;font-size:12px;">
-                                Open
-                            </a>
+                            <a href="/Permit/ViewFile/@Model.PermitId?type=license" target="_blank"
+                               class="btn-efn btn-outline" style="padding:5px 14px;font-size:12px;">Open</a>
                         </div>
-
                         <div style="background:var(--navy);padding:12px;text-align:center;">
-
                             <img src="/Permit/ViewFile/@Model.PermitId?type=license"
                                  alt="License Photo"
                                  style="max-width:100%;max-height:280px;object-fit:contain;border-radius:6px;"
@@ -193,49 +115,22 @@
 
                 @if (Model.HasRegistrationFile)
                 {
-                    var regExt = System.IO.Path
-                    .GetExtension(Model.RegistrationFileName ?? "")
-                    .ToLowerInvariant();
-
+                    var regExt = System.IO.Path.GetExtension(Model.RegistrationFileName ?? "").ToLowerInvariant();
                     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-
                         <div style="padding:10px 16px;background:var(--navy-light);display:flex;justify-content:space-between;align-items:center;">
-
                             <div style="display:flex;align-items:center;gap:10px;">
-
-                                <svg width="18"
-                                     height="18"
-                                     fill="none"
-                                     viewBox="0 0 24 24"
-                                     stroke="var(--blue-glow)"
-                                     stroke-width="1.8">
-
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--blue-glow)" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
-
                                 <div>
-                                    <div style="font-size:13px;font-weight:500;color:var(--white);">
-                                        Vehicle Registration (OR/CR)
-                                    </div>
-
-                                    <div style="font-size:11px;color:var(--gray-400);">
-                                        @(Model.RegistrationFileName ?? "registration")
-                                    </div>
+                                    <div style="font-size:13px;font-weight:500;color:var(--white);">Vehicle Registration (OR/CR)</div>
+                                    <div style="font-size:11px;color:var(--gray-400);">@(Model.RegistrationFileName ?? "registration")</div>
                                 </div>
                             </div>
-
-                            <a href="/Permit/ViewFile/@Model.PermitId?type=registration"
-                               target="_blank"
-                               class="btn-efn btn-outline"
-                               style="padding:5px 14px;font-size:12px;">
-                                Open
-                            </a>
+                            <a href="/Permit/ViewFile/@Model.PermitId?type=registration" target="_blank"
+                               class="btn-efn btn-outline" style="padding:5px 14px;font-size:12px;">Open</a>
                         </div>
-
                         <div style="background:var(--navy);padding:12px;text-align:center;">
-
                             @if (regExt == ".pdf")
                             {
                                 <p style="font-size:13px;color:var(--gray-400);margin:8px 0;">
@@ -256,49 +151,33 @@
         }
     </div>
 
-    @* ── QR Code (Admin View) ── *@
+    @* ── QR Code (Approved permits) ── *@
     @if (Model.Status == EFNco.Models.PermitStatus.Approved)
     {
         <div class="efn-card" style="margin-bottom:16px;border-color:rgba(16,185,129,0.2);">
-
             <div class="efn-card-header">
-                <h3 style="font-size:15px;color:var(--success);">
-                    ✅ Generated QR Code
-                </h3>
-
-                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">
-                    QR code generated on approval. Scan at gate for verification.
-                </p>
+                <h3 style="font-size:15px;color:var(--success);">✅ Generated QR Code</h3>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Scan at gate for verification.</p>
             </div>
 
             @if (Model.HasQRCode)
             {
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-
                     <div style="background:white;border-radius:12px;padding:12px;flex-shrink:0;">
-
                         <img src="/Permit/QRImage/@Model.PermitId"
                              alt="QR Code"
                              style="width:140px;height:140px;display:block;" />
                     </div>
-
                     <div style="display:flex;flex-direction:column;gap:10px;flex:1;min-width:180px;">
-
-                        <a href="/Permit/QRView/@Model.PermitId"
-                           target="_blank"
-                           class="btn-efn btn-primary">
+                        <a href="/Permit/QRView/@Model.PermitId" target="_blank" class="btn-efn btn-primary">
                             View Full QR
                         </a>
-
                         <a href="/Permit/QRImage/@Model.PermitId"
                            download="EFNco-Permit-@(Model.PermitId)-QR.png"
                            class="btn-efn btn-outline">
                             ⬇ Download QR
                         </a>
-
-                        <a href="/Permit/PrintPermit/@Model.PermitId"
-                           target="_blank"
-                           class="btn-efn btn-outline">
+                        <a href="/Permit/PrintPermit/@Model.PermitId" target="_blank" class="btn-efn btn-outline">
                             🖨 Print Permit
                         </a>
                     </div>
@@ -306,71 +185,83 @@
             }
             else
             {
-                <p style="font-size:13px;color:var(--gray-400);">
-                    QR code not yet generated for this permit.
-                </p>
+                <p style="font-size:13px;color:var(--gray-400);">QR code not yet generated for this permit.</p>
             }
         </div>
     }
 
-    @* ── Admin Actions ── *@
+    @* ── Admin Actions: Pending ── *@
     @if (Model.Status == EFNco.Models.PermitStatus.Pending)
     {
+        @* ✅ Approve *@
         <div class="efn-card" style="margin-bottom:16px;border-color:rgba(16,185,129,0.2);">
-
             <div class="efn-card-header">
-                <h3 style="font-size:15px;color:var(--success);">
-                    ✓ Approve Permit
-                </h3>
+                <h3 style="font-size:15px;color:var(--success);">✓ Approve Permit</h3>
             </div>
-
-            <form asp-action="ApprovePermit"
-                  asp-route-id="@Model.PermitId"
-                  method="post">
-
+            <form asp-action="ApprovePermit" asp-route-id="@Model.PermitId" method="post">
                 @Html.AntiForgeryToken()
-
                 <div class="form-row">
-
                     <div class="form-group">
                         <label class="form-label">Valid From</label>
-
-                        <input type="date"
-                               name="validFrom"
-                               class="form-control"
-                               value="@DateTime.Today.ToString("yyyy-MM-dd")"
-                               required />
+                        <input type="date" name="validFrom" class="form-control"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
                     </div>
-
                     <div class="form-group">
                         <label class="form-label">Valid Until</label>
-
-                        <input type="date"
-                               name="validUntil"
-                               class="form-control"
-                               value="@DateTime.Today.AddYears(1).ToString("yyyy-MM-dd")"
-                               required />
+                        <input type="date" name="validUntil" class="form-control"
+                               value="@DateTime.Today.AddYears(1).ToString("yyyy-MM-dd")" required />
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label class="form-label">
-                        Remarks
-                        <span style="color:var(--gray-500)">
-                            (Optional)
-                        </span>
-                    </label>
-
-                    <textarea name="remarks"
-                              class="form-control"
-                              rows="2"
+                    <label class="form-label">Remarks <span style="color:var(--gray-500)">(Optional)</span></label>
+                    <textarea name="remarks" class="form-control" rows="2"
                               placeholder="Any notes for the applicant..."></textarea>
                 </div>
-
-                <button type="submit"
-                        class="btn-efn"
+                <button type="submit" class="btn-efn"
                         style="background:var(--success);color:var(--navy);font-weight:600;">
                     Approve Permit
+                </button>
+            </form>
+        </div>
+
+        @* ✅ Reject — was missing, now restored *@
+        <div class="efn-card" style="border-color:rgba(239,68,68,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--danger);">✕ Reject Permit</h3>
+            </div>
+            <form id="rejectForm" asp-action="RejectPermit" asp-route-id="@Model.PermitId" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label">Reason for Rejection <span style="color:var(--gray-500)">(Optional)</span></label>
+                    <textarea name="remarks" class="form-control" rows="2"
+                              placeholder="Explain why the permit was rejected..."></textarea>
+                </div>
+                <button type="button" class="btn-efn btn-danger" style="padding:10px 20px;"
+                        onclick="showConfirm('Reject this permit?','The applicant will be notified that their permit was rejected. This cannot be undone.','rejectForm')">
+                    Reject Permit
+                </button>
+            </form>
+        </div>
+    }
+
+    @* ── Admin Actions: Approved → Revoke ── *@
+    @if (Model.Status == EFNco.Models.PermitStatus.Approved)
+    {
+        <div class="efn-card" style="margin-top:16px;border-color:rgba(239,68,68,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--danger);">Revoke Permit</h3>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Revoking will immediately invalidate this permit.</p>
+            </div>
+            <form id="revokeForm" asp-action="RevokePermit" asp-route-id="@Model.PermitId" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label">Reason <span style="color:var(--gray-500)">(Optional)</span></label>
+                    <textarea name="remarks" class="form-control" rows="2"
+                              placeholder="Reason for revoking..."></textarea>
+                </div>
+                <button type="button" class="btn-efn btn-danger" style="padding:10px 20px;"
+                        onclick="showConfirm('Revoke this permit?','The permit will be immediately invalidated and the applicant will lose parking access. This cannot be undone.','revokeForm')">
+                    Revoke Permit
                 </button>
             </form>
         </div>
@@ -379,7 +270,28 @@
 
 <script>
     function showPreviewFallback(img) {
-        img.parentElement.innerHTML =
-            '<p style="font-size:13px;color:#64748b;margin:8px 0;">Unable to preview — click Open to view.</p>';
+        img.parentElement.innerHTML = '<p style="font-size:13px;color:#64748b;margin:8px 0;">Unable to preview \u2014 click Open to view.</p>';
     }
-</script>w
+
+    var _pendingFormId = null;
+
+    function showConfirm(title, msg, formId) {
+        _pendingFormId = formId;
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMsg').textContent   = msg;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    function closeConfirm() {
+        _pendingFormId = null;
+        document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', function () {
+        if (_pendingFormId) document.getElementById(_pendingFormId).submit();
+    });
+
+    document.getElementById('confirmModal').addEventListener('click', function (e) {
+        if (e.target === this) closeConfirm();
+    });
+</script>

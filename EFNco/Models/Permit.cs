@@ -118,8 +118,14 @@ namespace EFNco.Models
         public string? RegistrationFileContentType { get; set; }
 
         // ── QR Code ──────────────────────────────────────────
-        // Generated as PNG bytes when permit is approved
+        // Raw PNG bytes of the generated QR image
         public byte[]? QRCodeData { get; set; }
+
+        // ✅ Unique unguessable token — this is what gets encoded in the QR URL.
+        // Format: https://yoursite.com/Permit/Verify/{QRToken}
+        // Anyone with a phone camera can scan and see the permit status.
+        [StringLength(64)]
+        public string? QRToken { get; set; }
 
         // Reviewed by
         public string? ReviewedByUserId { get; set; }
