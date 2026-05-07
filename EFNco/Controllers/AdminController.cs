@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EFNco.Data;
 using EFNco.Models;
+using QRCoder;
 
 namespace EFNco.Controllers
 {
@@ -179,7 +180,6 @@ namespace EFNco.Controllers
                 .Include(p => p.Applicant)
                 .AsQueryable();
 
-            // Filter by status if provided
             if (!string.IsNullOrEmpty(status) && Enum.TryParse<PermitStatus>(status, out var permitStatus))
                 query = query.Where(p => p.Status == permitStatus);
 
@@ -187,22 +187,27 @@ namespace EFNco.Controllers
                 .OrderByDescending(p => p.AppliedAt)
                 .Select(p => new AdminPermitListViewModel
                 {
-                    PermitId       = p.Id,
-                    ApplicantName  = p.Applicant!.FirstName + " " + p.Applicant.LastName,
+                    PermitId = p.Id,
+                    ApplicantName = p.Applicant!.FirstName + " " + p.Applicant.LastName,
                     ApplicantEmail = p.Applicant.Email ?? "",
-                    PlateNumber    = p.Vehicle!.PlateNumber,
+                    PlateNumber = p.Vehicle!.PlateNumber,
                     VehicleDisplay = p.Vehicle.Make + " " + p.Vehicle.Model + " (" + p.Vehicle.VehicleType + ")",
-                    PermitType     = p.PermitType,
-                    Status         = p.Status,
-                    AppliedAt      = p.AppliedAt,
-                    ValidFrom      = p.ValidFrom,
-                    ValidUntil     = p.ValidUntil
+                    PermitType = p.PermitType,
+                    Status = p.Status,
+                    AppliedAt = p.AppliedAt,
+                    ValidFrom = p.ValidFrom,
+                    ValidUntil = p.ValidUntil,
+
+                    // ✅ These were missing — causing the Docs column to always show "—"
+                    HasLicensePhoto = p.LicensePhotoData != null,
+                    HasRegistrationFile = p.RegistrationFileData != null,
                 })
                 .ToListAsync();
 
             ViewBag.CurrentStatus = status ?? "All";
             return View(permits);
         }
+
 
         // ── GET: /Admin/PermitDetails/{id} ───────────────────
         // Replace ONLY this action in your existing AdminController.cs
@@ -232,6 +237,7 @@ namespace EFNco.Controllers
                 ValidFrom = permit.ValidFrom,
                 ValidUntil = permit.ValidUntil,
                 Remarks = permit.Remarks,
+                HasQRCode = permit.QRCodeData != null,  // Sprint 3 addition
 
                 // ✅ These were missing — causing "No documents" to always show
                 HasLicensePhoto = permit.LicensePhotoData != null,
@@ -243,28 +249,51 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // POST: Approve permit
+        // ── POST: /Admin/ApprovePermit/{id} ──────────────────
+        // Replace your existing ApprovePermit action with this.
+        // Key changes:
+        //   1. Generates a unique QRToken (GUID) per permit
+        //   2. QR encodes a real URL: /Permit/Verify/{token}
+        //      so any phone camera can scan and open it directly
+
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApprovePermit(int id, DateTime validFrom, DateTime validUntil, string? remarks)
         {
-            var permit = await _db.ParkingPermits.FindAsync(id);
+            var permit = await _db.ParkingPermits
+                .Include(p => p.Vehicle)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (permit == null) return NotFound();
 
-            var admin = await _userManager.GetUserAsync(User);
+            var reviewer = await _userManager.GetUserAsync(User);
 
-            permit.Status           = PermitStatus.Approved;
-            permit.ReviewedAt       = DateTime.UtcNow;
-            permit.ValidFrom        = validFrom;
-            permit.ValidUntil       = validUntil;
-            permit.Remarks          = remarks;
-            permit.ReviewedByUserId = admin!.Id;
+            permit.Status = PermitStatus.Approved;
+            permit.ValidFrom = validFrom;
+            permit.ValidUntil = validUntil;
+            permit.Remarks = remarks;
+            permit.ReviewedAt = DateTime.UtcNow;
+            permit.ReviewedByUserId = reviewer?.Id;
+
+            // ✅ Generate a unique unguessable token for this permit
+            permit.QRToken = Guid.NewGuid().ToString("N"); // 32 char hex, no dashes
+
+            // ✅ Build a full URL that any phone camera can open
+            var verifyUrl = Url.Action("Verify", "Permit", new { token = permit.QRToken }, Request.Scheme);
+
+            // Generate QR code encoding the verify URL
+            using var qrGenerator = new QRCodeGenerator();
+            var qrData = qrGenerator.CreateQrCode(verifyUrl, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new PngByteQRCode(qrData);
+            permit.QRCodeData = qrCode.GetGraphic(10);
 
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = $"Permit #{id} approved successfully.";
-            return RedirectToAction("Permits");
+            TempData["Success"] = $"Permit #{id} approved and QR code generated.";
+            return RedirectToAction("PermitDetails", "Admin", new { id });
         }
+
 
         // POST: Reject permit
         [HttpPost]

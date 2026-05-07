@@ -58,14 +58,12 @@ namespace EFNco.Models
 
         public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
 
-        // Owner
         [Required]
         public string UserId { get; set; } = string.Empty;
 
         [ForeignKey("UserId")]
         public virtual ApplicationUser? Owner { get; set; }
 
-        // Navigation
         public virtual ParkingPermit? Permit { get; set; }
     }
 
@@ -101,8 +99,7 @@ namespace EFNco.Models
         [Display(Name = "Purpose / Notes")]
         public string? Purpose { get; set; }
 
-        // ── License Photo ────────────────────────────────────
-        [Display(Name = "License Photo")]
+        // ── License Photo ─────────────────────────────────────
         public byte[]? LicensePhotoData { get; set; }
 
         [StringLength(255)]
@@ -111,8 +108,7 @@ namespace EFNco.Models
         [StringLength(100)]
         public string? LicensePhotoContentType { get; set; }
 
-        // ── Vehicle Registration (OR/CR) ─────────────────────
-        [Display(Name = "Vehicle Registration (OR/CR)")]
+        // ── Vehicle Registration (OR/CR) ──────────────────────
         public byte[]? RegistrationFileData { get; set; }
 
         [StringLength(255)]
@@ -120,6 +116,16 @@ namespace EFNco.Models
 
         [StringLength(100)]
         public string? RegistrationFileContentType { get; set; }
+
+        // ── QR Code ──────────────────────────────────────────
+        // Raw PNG bytes of the generated QR image
+        public byte[]? QRCodeData { get; set; }
+
+        // ✅ Unique unguessable token — this is what gets encoded in the QR URL.
+        // Format: https://yoursite.com/Permit/Verify/{QRToken}
+        // Anyone with a phone camera can scan and see the permit status.
+        [StringLength(64)]
+        public string? QRToken { get; set; }
 
         // Reviewed by
         public string? ReviewedByUserId { get; set; }
@@ -140,5 +146,8 @@ namespace EFNco.Models
 
         [ForeignKey("UserId")]
         public virtual ApplicationUser? Applicant { get; set; }
+
+        // Computed helper
+        public bool IsExpired => ValidUntil.HasValue && ValidUntil.Value < DateTime.UtcNow;
     }
 }

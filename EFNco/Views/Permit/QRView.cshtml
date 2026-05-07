@@ -1,0 +1,241 @@
+@model EFNco.Models.ParkingPermit
+@{
+    ViewData["Title"] = "My QR Permit";
+    Layout = null;
+    bool isExpired = Model.IsExpired;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Permit — EFNco</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body {
+            background: var(--navy);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .qr-page {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .qr-header {
+            text-align: center;
+        }
+
+        .qr-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .qr-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--blue), var(--cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 13px;
+            color: white;
+        }
+
+        .qr-logo-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: var(--white);
+        }
+
+        .qr-box {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            width: 100%;
+            box-shadow: 0 0 60px rgba(37, 99, 235, 0.2);
+        }
+
+        .qr-box img {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .expired-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .expired-badge {
+            background: var(--danger);
+            color: white;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 28px;
+            padding: 10px 28px;
+            border-radius: 10px;
+            letter-spacing: 2px;
+        }
+
+        .expired-text {
+            font-size: 14px;
+            color: #fca5a5;
+        }
+
+        .qr-info {
+            width: 100%;
+            background: var(--navy-mid);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .qr-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .qr-info-label {
+            color: var(--gray-400);
+            font-size: 12px;
+        }
+
+        .qr-info-value {
+            color: var(--white);
+            font-weight: 600;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .qr-actions a, .qr-actions button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="qr-page">
+
+    <!-- Logo -->
+    <div class="qr-header">
+        <div class="qr-logo">
+            <div class="qr-logo-icon">EF</div>
+            <span class="qr-logo-name">EFNco</span>
+        </div>
+        <p style="font-size:13px;color:var(--gray-400);">
+            @if (isExpired)
+            {
+                <span style="color:#fca5a5;">⚠️ This permit has expired</span>
+            }
+            else
+            {
+                <span>Show this QR code at the gate for entry</span>
+            }
+        </p>
+    </div>
+
+    <!-- QR Code Box -->
+    <div class="qr-box">
+        <img src="@Url.Action("QRImage", "Permit", new { id = Model.Id })"
+             alt="Permit QR Code" />
+
+        @if (isExpired)
+        {
+            <div class="expired-overlay">
+                <div class="expired-badge">EXPIRED</div>
+                <div class="expired-text">This permit is no longer valid</div>
+            </div>
+        }
+    </div>
+
+    <!-- Permit Info -->
+    <div class="qr-info">
+        <div class="qr-info-row">
+            <span class="qr-info-label">Permit ID</span>
+            <span class="qr-info-value">#@Model.Id</span>
+        </div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div class="qr-info-row">
+            <span class="qr-info-label">Plate Number</span>
+            <span class="qr-info-value">@Model.Vehicle!.PlateNumber</span>
+        </div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div class="qr-info-row">
+            <span class="qr-info-label">Vehicle</span>
+            <span class="qr-info-value">@Model.Vehicle.Make @Model.Vehicle.Model</span>
+        </div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div class="qr-info-row">
+            <span class="qr-info-label">Permit Type</span>
+            <span class="qr-info-value">@Model.PermitType</span>
+        </div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div class="qr-info-row">
+            <span class="qr-info-label">Valid Until</span>
+            <span class="qr-info-value" style="color:@(isExpired ? "var(--danger)" : "var(--success)");">
+                @Model.ValidUntil?.ToString("MMM dd, yyyy")
+            </span>
+        </div>
+        <div style="height:1px;background:var(--border);"></div>
+        <div class="qr-info-row">
+            <span class="qr-info-label">Holder</span>
+            <span class="qr-info-value">@Model.Applicant!.FullName</span>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="qr-actions">
+        <a href="@Url.Action("QRImage", "Permit", new { id = Model.Id })"
+           download="EFNco-Permit-@(Model.Id)-QR.png"
+           class="btn-efn btn-primary" style="text-align:center;">
+            ⬇ Download QR
+        </a>
+        <a href="@Url.Action("PrintPermit", "Permit", new { id = Model.Id })"
+           target="_blank"
+           class="btn-efn btn-outline" style="text-align:center;">
+            🖨 Print Permit
+        </a>
+    </div>
+
+    <a asp-controller="Permit" asp-action="Details" asp-route-id="@Model.Id"
+       style="font-size:13px;color:var(--gray-400);text-decoration:none;">
+        ← Back to Permit Details
+    </a>
+
+</div>
+</body>
+</html>

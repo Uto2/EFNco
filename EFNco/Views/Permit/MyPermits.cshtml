@@ -101,28 +101,21 @@ else
 
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
                     <a asp-action="Details" asp-route-id="@permit.PermitId" class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">View Details</a>
-
-                    @* ✅ Direct document view links for the user *@
-                    @if (permit.HasLicensePhoto)
+                    @if (permit.Status == EFNco.Models.PermitStatus.Approved)
                     {
-                        <a href="/Permit/ViewFile/@permit.PermitId?type=license" target="_blank"
-                           class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">
-                            🪪 View License
+                        <a asp-action="QRView" asp-route-id="@permit.PermitId" class="btn-efn btn-primary" style="padding:6px 14px;font-size:13px;">
+                            📱 Show QR
+                        </a>
+                        <a asp-action="PrintPermit" asp-route-id="@permit.PermitId" target="_blank" class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">
+                            🖨 Print
                         </a>
                     }
-                    @if (permit.HasRegistrationFile)
-                    {
-                        <a href="/Permit/ViewFile/@permit.PermitId?type=registration" target="_blank"
-                           class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">
-                            📋 View OR/CR
-                        </a>
-                    }
-
                     @if (permit.Status == EFNco.Models.PermitStatus.Pending)
                     {
                         <a asp-action="Cancel" asp-route-id="@permit.PermitId" class="btn-efn btn-danger" style="padding:6px 14px;font-size:13px;">Cancel</a>
                     }
                 </div>
+
             </div>
         }
     </div>

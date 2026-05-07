@@ -1,0 +1,326 @@
+@model EFNco.Models.ParkingPermit
+@{
+    ViewData["Title"] = "Print Permit";
+    Layout = null;
+    bool isExpired = Model.IsExpired;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EFNco Parking Permit #@Model.Id</title>
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .print-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .btn-print {
+            padding: 10px 24px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            padding: 10px 24px;
+            background: transparent;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .permit-card {
+            width: 100%;
+            max-width: 680px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .permit-header {
+            background: linear-gradient(135deg, #0a0f1e, #1e2a3a);
+            padding: 28px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .permit-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .permit-brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+        }
+
+        .permit-brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            color: white;
+        }
+
+        .permit-brand-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+        }
+
+        .permit-status-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .permit-body {
+            padding: 28px 32px;
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+        }
+
+        .permit-qr {
+            flex-shrink: 0;
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permit-qr img {
+            width: 160px;
+            height: 160px;
+            border-radius: 8px;
+            border: 3px solid #e2e8f0;
+        }
+
+        .permit-qr-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .permit-details {
+            flex: 1;
+        }
+
+        .permit-plate {
+            font-family: 'Syne', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 4px;
+            border: 3px solid #0f172a;
+            padding: 8px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .detail-item label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .detail-item span {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .permit-footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .permit-id {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .permit-validity {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .expired-banner {
+            background: #fee2e2;
+            border-top: 2px solid #ef4444;
+            padding: 10px 32px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ef4444;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        @@media print {
+            body { background: white; padding: 0; }
+            .print-actions { display: none !important; }
+            .permit-card { box-shadow: none; border: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Actions (hidden on print) -->
+    <div class="print-actions">
+        <button class="btn-print" onclick="window.print()">🖨 Print This Permit</button>
+        <a class="btn-back" href="javascript:history.back()">← Go Back</a>
+    </div>
+
+    <!-- Permit Card -->
+    <div class="permit-card">
+
+        <!-- Header -->
+        <div class="permit-header">
+            <div class="permit-brand">
+                <div class="permit-brand-icon">EF</div>
+                <div>
+                    <div class="permit-brand-name">EFNco</div>
+                    <div class="permit-brand-sub">Efficient Facility Network Control</div>
+                </div>
+            </div>
+            <div class="permit-status-badge"
+                 style="@(isExpired ? "background:#fee2e2;color:#ef4444;" : "background:rgba(16,185,129,0.15);color:#10b981;")">
+                @(isExpired ? "EXPIRED" : "VALID")
+            </div>
+        </div>
+
+        @if (isExpired)
+        {
+            <div class="expired-banner">⚠ This permit has expired and is no longer valid for entry</div>
+        }
+
+        <!-- Body -->
+        <div class="permit-body">
+
+            <!-- QR Code -->
+            <div class="permit-qr">
+                <img src="@Url.Action("QRImage", "Permit", new { id = Model.Id })"
+                     alt="Permit QR Code" />
+                <div class="permit-qr-label">SCAN AT GATE</div>
+            </div>
+
+            <!-- Details -->
+            <div class="permit-details">
+                <div class="permit-plate">@Model.Vehicle!.PlateNumber</div>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Permit Holder</label>
+                        <span>@Model.Applicant!.FullName</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Permit Type</label>
+                        <span>@Model.PermitType</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Vehicle</label>
+                        <span>@Model.Vehicle.Make @Model.Vehicle.Model (@Model.Vehicle.VehicleType)</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Color / Year</label>
+                        <span>@(Model.Vehicle.Color ?? "—") / @(Model.Vehicle.Year ?? "—")</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Valid From</label>
+                        <span>@Model.ValidFrom?.ToString("MMMM dd, yyyy")</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Valid Until</label>
+                        <span style="color:@(isExpired ? "#ef4444" : "#10b981");font-weight:600;">
+                            @Model.ValidUntil?.ToString("MMMM dd, yyyy")
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Applicant.Department))
+                    {
+                        <div class="detail-item">
+                            <label>Department</label>
+                            <span>@Model.Applicant.Department</span>
+                        </div>
+                    }
+                    <div class="detail-item">
+                        <label>Permit ID</label>
+                        <span>#@Model.Id</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="permit-footer">
+            <div class="permit-id">EFNco Permit #@Model.Id</div>
+            <div class="permit-validity">
+                Approved: @Model.ReviewedAt?.ToString("MMM dd, yyyy")
+                &nbsp;·&nbsp;
+                Expires: @Model.ValidUntil?.ToString("MMM dd, yyyy")
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
