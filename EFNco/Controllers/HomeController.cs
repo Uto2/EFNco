@@ -28,9 +28,14 @@ namespace EFNco.Controllers
             ViewBag.Role = roles.FirstOrDefault() ?? "User";
 
             // Dashboard stats
-            ViewBag.ActivePermits   = await _db.ParkingPermits.CountAsync(p => p.Status == PermitStatus.Approved);
-            ViewBag.PendingPermits  = await _db.ParkingPermits.CountAsync(p => p.Status == PermitStatus.Pending);
-            ViewBag.TotalUsers      = await _userManager.Users.CountAsync();
+            ViewBag.ActivePermits = await _db.ParkingPermits.CountAsync(p => p.Status == PermitStatus.Approved);
+            ViewBag.PendingPermits = await _db.ParkingPermits.CountAsync(p => p.Status == PermitStatus.Pending);
+            ViewBag.TotalUsers = await _userManager.Users.CountAsync();
+            ViewBag.TodayEntries = await _db.EntryExitLogs.CountAsync(l => l.Timestamp.Date == DateTime.Today && l.Action == LogAction.Entry);
+            ViewBag.CurrentlyInside = await _db.EntryExitLogs
+                .GroupBy(l => l.PermitId)
+                .Select(g => g.OrderByDescending(l => l.Timestamp).First())
+                .CountAsync(l => l.Action == LogAction.Entry);
             ViewBag.TotalViolations = 0; // Sprint 6
 
             return View();

@@ -1,0 +1,165 @@
+@model List<EFNco.Models.EntryExitLog>
+@{
+    ViewData["Title"] = "Entry / Exit Log";
+}
+
+@* ── Stats Strip ── *@
+<div class="stats-grid" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14"/>
+            </svg>
+        </div>
+        <div>
+            <div class="stat-value">@ViewBag.TodayEntries</div>
+            <div class="stat-label">Today's Entries</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+        </div>
+        <div>
+            <div class="stat-value">@ViewBag.TodayExits</div>
+            <div class="stat-label">Today's Exits</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon cyan">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="stat-value">@ViewBag.CurrentlyInside</div>
+            <div class="stat-label">Currently Inside</div>
+        </div>
+    </div>
+</div>
+
+@* ── Filters ── *@
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h2 style="font-size:18px;">Entry / Exit Log</h2>
+        <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">@ViewBag.TotalCount record(s) found</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <form asp-action="Log" method="get" style="display:flex;gap:8px;align-items:center;">
+            <input type="date" name="date" value="@ViewBag.Date"
+                   class="form-control" style="width:160px;padding:8px 12px;font-size:13px;" />
+            <select name="action" class="form-control" style="width:120px;padding:8px 12px;font-size:13px;">
+                <option value="" selected="@(ViewBag.Action == "All")">All</option>
+                <option value="Entry" selected="@(ViewBag.Action == "Entry")">Entry</option>
+                <option value="Exit" selected="@(ViewBag.Action == "Exit")">Exit</option>
+            </select>
+            <button type="submit" class="btn-efn btn-primary" style="padding:8px 16px;font-size:13px;">Filter</button>
+        </form>
+        <a asp-controller="Gate" asp-action="Scan" class="btn-efn btn-outline" style="padding:8px 16px;font-size:13px;">
+            📷 Go to Scanner
+        </a>
+    </div>
+</div>
+
+@* ── Log Table ── *@
+@if (!Model.Any())
+{
+    <div class="efn-card" style="text-align:center;padding:48px 24px;">
+        <p style="color:var(--gray-400);font-size:14px;">No logs found for the selected filters.</p>
+    </div>
+}
+else
+{
+    <div class="efn-card" style="padding:0;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid var(--border);">
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Time</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Action</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Plate</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Holder</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Duration</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Verified By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    bool isEntry = log.Action == EFNco.Models.LogAction.Entry;
+                    <tr style="border-bottom:1px solid var(--border);transition:background 0.15s;"
+                        onmouseover="this.style.background='var(--navy-light)'"
+                        onmouseout="this.style.background=''">
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-300);">
+                            <div>@log.Timestamp.ToString("h:mm:ss tt")</div>
+                            <div style="font-size:11px;color:var(--gray-500);">@log.Timestamp.ToString("MMM dd, yyyy")</div>
+                        </td>
+                        <td style="padding:14px 20px;">
+                            @if (isEntry)
+                            {
+                                <span class="badge" style="background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.25);">
+                                    ↓ ENTRY
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge" style="background:rgba(37,99,235,0.1);color:var(--blue-glow);border:1px solid rgba(37,99,235,0.25);">
+                                    ↑ EXIT
+                                </span>
+                            }
+                        </td>
+                        <td style="padding:14px 20px;">
+                            <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--white);letter-spacing:1px;">
+                                @log.PlateNumber
+                            </span>
+                        </td>
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-300);">
+                            @if (log.Permit?.Applicant != null)
+                            {
+                                <div>@log.Permit.Applicant.FullName</div>
+                                <div style="font-size:11px;color:var(--gray-500);">@log.Permit.PermitType</div>
+                            }
+                            else
+                            {
+                                <span style="color:var(--gray-500);">—</span>
+                            }
+                        </td>
+                        <td style="padding:14px 20px;font-size:13px;">
+                            @if (log.ParkingDuration.HasValue)
+                            {
+                                <span style="color:var(--cyan);font-weight:600;">@log.DurationDisplay</span>
+                            }
+                            else if (isEntry)
+                            {
+                                <span style="color:var(--warning);font-size:12px;">In progress</span>
+                            }
+                            else
+                            {
+                                <span style="color:var(--gray-500);">—</span>
+                            }
+                        </td>
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-400);">
+                            @(log.VerifiedBy?.FullName ?? "—")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* Pagination *@
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:20px;">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <a asp-action="Log" asp-route-page="@i" asp-route-date="@ViewBag.Date" asp-route-action="@ViewBag.Action"
+                   style="padding:6px 14px;border-radius:8px;font-size:13px;text-decoration:none;
+                   @(i == (int)ViewBag.Page ? "background:var(--blue);color:white;" : "background:var(--navy-light);color:var(--gray-300);border:1px solid var(--border);")">
+                    @i
+                </a>
+            }
+        </div>
+    }
+}
