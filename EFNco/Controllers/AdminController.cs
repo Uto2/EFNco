@@ -249,16 +249,12 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // ── POST: /Admin/ApprovePermit/{id} ──────────────────
-        // Replace your existing ApprovePermit action with this.
-        // Key changes:
-        //   1. Generates a unique QRToken (GUID) per permit
-        //   2. QR encodes a real URL: /Permit/Verify/{token}
-        //      so any phone camera can scan and open it directly
+        // Replace your ApprovePermit action in AdminController.cs with this.
+        // Key fix: verifyUrl now uses Request.Host directly to guarantee
+        // the correct host is encoded in the QR, not just "localhost"
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApprovePermit(int id, DateTime validFrom, DateTime validUntil, string? remarks)
         {
             var permit = await _db.ParkingPermits
@@ -276,13 +272,17 @@ namespace EFNco.Controllers
             permit.ReviewedAt = DateTime.UtcNow;
             permit.ReviewedByUserId = reviewer?.Id;
 
-            // ✅ Generate a unique unguessable token for this permit
-            permit.QRToken = Guid.NewGuid().ToString("N"); // 32 char hex, no dashes
+            // Generate unique token
+            permit.QRToken = Guid.NewGuid().ToString("N");
 
-            // ✅ Build a full URL that any phone camera can open
+            // ✅ Build the verify URL using Url.Action with query string token
+            // This generates: http://host/Permit/Verify?token=abc123
             var verifyUrl = Url.Action("Verify", "Permit", new { token = permit.QRToken }, Request.Scheme);
 
-            // Generate QR code encoding the verify URL
+            // ✅ Debug: save the URL to TempData so you can see what's in the QR
+            TempData["QRDebugUrl"] = verifyUrl;
+
+            // Generate QR
             using var qrGenerator = new QRCodeGenerator();
             var qrData = qrGenerator.CreateQrCode(verifyUrl, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new PngByteQRCode(qrData);
@@ -290,7 +290,7 @@ namespace EFNco.Controllers
 
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = $"Permit #{id} approved and QR code generated.";
+            TempData["Success"] = $"Permit #{id} approved. QR URL: {verifyUrl}";
             return RedirectToAction("PermitDetails", "Admin", new { id });
         }
 

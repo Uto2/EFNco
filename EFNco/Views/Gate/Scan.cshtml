@@ -22,7 +22,7 @@
         </div>
 
         <div style="position:relative;width:100%;background:var(--navy);border-radius:8px;overflow:hidden;">
-            <video id="qr-video" style="width:100%;display:none;border-radius:8px;" playsinline></video>
+            <video id="qr-video" style="width:100%;display:none;border-radius:8px;transform:scaleX(-1);" playsinline></video>
             <canvas id="qr-canvas" style="display:none;"></canvas>
 
             <div id="qr-placeholder" style="text-align:center;padding:48px 32px;color:var(--gray-500);">
@@ -42,6 +42,12 @@
 
         <div id="scan-status" style="display:none;margin-top:10px;" class="alert alert-success">
             ✅ QR code detected! Submitting...
+        </div>
+
+        @* ✅ Added debug box so you can see what was scanned *@
+        <div id="scan-debug" style="display:none;margin-top:10px;padding:10px 14px;background:var(--navy);border-radius:8px;font-size:12px;color:var(--gray-400);word-break:break-all;">
+            <strong style="color:var(--gray-300);">Scanned:</strong> <span id="scan-debug-raw"></span><br />
+            <strong style="color:var(--gray-300);">Token:</strong> <span id="scan-debug-token"></span>
         </div>
 
         <div id="scan-error" style="display:none;margin-top:10px;" class="alert alert-danger">
@@ -106,18 +112,19 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         let videoStream = null;
-        let scanLoop = null;
-        let scanning = false;
+        let scanLoop    = null;
+        let scanning    = false;
 
-        const video      = document.getElementById('qr-video');
-        const canvas     = document.getElementById('qr-canvas');
-        const ctx        = canvas.getContext('2d');
+        const video       = document.getElementById('qr-video');
+        const canvas      = document.getElementById('qr-canvas');
+        const ctx         = canvas.getContext('2d');
         const placeholder = document.getElementById('qr-placeholder');
-        const overlay    = document.getElementById('scan-overlay');
+        const overlay     = document.getElementById('scan-overlay');
 
         async function startCamera() {
-            document.getElementById('scan-error').style.display = 'none';
+            document.getElementById('scan-error').style.display  = 'none';
             document.getElementById('scan-status').style.display = 'none';
+            document.getElementById('scan-debug').style.display  = 'none';
 
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
@@ -130,7 +137,7 @@
                 overlay.style.display = 'block';
 
                 document.getElementById('startCameraBtn').style.display = 'none';
-                document.getElementById('stopCameraBtn').style.display = 'flex';
+                document.getElementById('stopCameraBtn').style.display  = 'flex';
 
                 await video.play();
                 scanning = true;
@@ -138,7 +145,8 @@
 
             } catch (err) {
                 document.getElementById('scan-error').style.display = 'block';
-                document.getElementById('scan-error-text').textContent = 'Camera error: ' + err.message + '. Use manual entry.';
+                document.getElementById('scan-error-text').textContent =
+                    'Camera error: ' + err.message + '. Use manual entry.';
             }
         }
 
@@ -148,7 +156,13 @@
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.width  = video.videoWidth;
                 canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // ✅ Mirror the canvas draw to match the flipped video display
+                // Without this jsQR reads mirrored pixels and can't decode the QR
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                ctx.restore();
 
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
@@ -169,23 +183,42 @@
         function onQRDetected(rawText) {
             document.getElementById('scan-status').style.display = 'block';
 
-            // Extract token from URL or use raw
+            // The QR encodes: http://host/Permit/Verify?token=abc123
+            // Url.Action() in ASP.NET Core generates query string params not route segments
+            // So we read ?token= from the URL
             var token = rawText.trim();
+
             try {
                 var urlObj = new URL(rawText);
-                var t = urlObj.searchParams.get('token');
-                if (t) token = t.trim();
+
+                // ✅ Try query string first: /Permit/Verify?token=abc123
+                var qParam = urlObj.searchParams.get('token');
+                if (qParam && qParam.length >= 16) {
+                    token = qParam.trim();
+                } else {
+                    // Fallback: try last path segment: /Permit/Verify/abc123
+                    var segments = urlObj.pathname.split('/').filter(Boolean);
+                    var lastSeg  = segments[segments.length - 1];
+                    if (lastSeg && lastSeg.length >= 16) {
+                        token = lastSeg.trim();
+                    }
+                }
             } catch (e) {
+                // Not a valid URL — use rawText as-is
                 token = rawText.trim();
             }
 
-            document.getElementById('hiddenQrToken').value = token;
-            document.getElementById('plateInput').value = '';
+            // Debug info — shows exactly what was scanned and what token was extracted
+            document.getElementById('scan-debug').style.display     = 'block';
+            document.getElementById('scan-debug-raw').textContent   = rawText;
+            document.getElementById('scan-debug-token').textContent = token;
 
-            // Submit the form
-            setTimeout(function() {
+            document.getElementById('hiddenQrToken').value = token;
+            document.getElementById('plateInput').value    = '';
+
+            setTimeout(function () {
                 document.getElementById('verifyForm').submit();
-            }, 500);
+            }, 800);
         }
 
         function stopCamera() {
@@ -198,11 +231,11 @@
                 videoStream.getTracks().forEach(t => t.stop());
                 videoStream = null;
             }
-            video.style.display = 'none';
-            overlay.style.display = 'none';
+            video.style.display       = 'none';
+            overlay.style.display     = 'none';
             placeholder.style.display = 'block';
             document.getElementById('startCameraBtn').style.display = 'flex';
-            document.getElementById('stopCameraBtn').style.display = 'none';
+            document.getElementById('stopCameraBtn').style.display  = 'none';
         }
 
         document.getElementById('plateInput').addEventListener('input', function () {
