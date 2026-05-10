@@ -1,0 +1,97 @@
+@model List<EFNco.Models.ParkingSessionViewModel>
+@{
+    ViewData["Title"] = "Parking Duration History";
+    var permit = ViewBag.Permit as EFNco.Models.ParkingPermit;
+}
+
+<div style="max-width:680px;">
+    <div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <a asp-action="Details" asp-controller="Permit" asp-route-id="@permit!.Id"
+           class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to Permit</a>
+        <h2 style="font-size:18px;font-family:'Syne',sans-serif;">Duration History</h2>
+        <span style="font-size:14px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">
+            @permit!.Vehicle!.PlateNumber
+        </span>
+    </div>
+
+    @* Stats summary *@
+    @{
+        var completedSessions = Model.Where(s => s.Duration.HasValue).ToList();
+        var totalTime = completedSessions.Any()
+            ? TimeSpan.FromTicks(completedSessions.Sum(s => s.Duration!.Value.Ticks))
+            : TimeSpan.Zero;
+        var avgTime = completedSessions.Any()
+            ? TimeSpan.FromTicks((long)completedSessions.Average(s => s.Duration!.Value.Ticks))
+            : TimeSpan.Zero;
+        var isInsideNow = Model.Any() && !Model.First().ExitTime.HasValue;
+    }
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+        <div class="efn-card" style="text-align:center;padding:16px;">
+            <div style="font-size:24px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">@Model.Count</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">Total Sessions</div>
+        </div>
+        <div class="efn-card" style="text-align:center;padding:16px;">
+            <div style="font-size:24px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">
+                @((int)totalTime.TotalHours)h @totalTime.Minutes<span style="font-size:14px;">m</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">Total Time</div>
+        </div>
+        <div class="efn-card" style="text-align:center;padding:16px;">
+            <div style="font-size:24px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">
+                @((int)avgTime.TotalHours)h @avgTime.Minutes<span style="font-size:14px;">m</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">Avg Duration</div>
+        </div>
+    </div>
+
+    @if (isInsideNow)
+    {
+        <div class="alert alert-success" style="margin-bottom:16px;">
+            🟢 Vehicle is currently <strong>inside</strong> the campus.
+            Entry at <strong>@Model.First().EntryDisplay</strong>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="efn-card" style="text-align:center;padding:48px 24px;">
+            <p style="color:var(--gray-400);font-size:14px;">No parking sessions recorded yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="efn-card" style="padding:0;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <th style="padding:13px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Entry</th>
+                        <th style="padding:13px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Exit</th>
+                        <th style="padding:13px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr style="border-bottom:1px solid var(--border);">
+                            <td style="padding:13px 20px;font-size:13px;color:var(--gray-300);">@s.EntryDisplay</td>
+                            <td style="padding:13px 20px;font-size:13px;color:var(--gray-300);">
+                                @if (!s.ExitTime.HasValue)
+                                {
+                                    <span style="color:#6ee7b7;font-weight:600;">Still Inside</span>
+                                }
+                                else
+                                {
+                                    @s.ExitDisplay
+                                }
+                            </td>
+                            <td style="padding:13px 20px;font-size:13px;font-weight:600;color:var(--white);">
+                                @s.DurationDisplay
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

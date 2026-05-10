@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
