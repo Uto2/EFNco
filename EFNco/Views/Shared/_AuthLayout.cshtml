@@ -1,0 +1,66 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — EFNco</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+
+<div class="auth-page">
+    <!-- Left Panel -->
+    <div class="auth-left">
+        <div class="auth-grid"></div>
+        <div class="auth-brand">
+            <div class="auth-brand-icon">EF</div>
+            <div>
+                <div class="auth-brand-name">EFNco</div>
+                <div class="auth-brand-tagline">Efficient Facility Network Control</div>
+            </div>
+        </div>
+
+        <h1 class="auth-headline">
+            Modern Parking<br><span>Access Control</span><br>for Your Facility
+        </h1>
+        <p class="auth-desc">
+            Replace outdated sticker-based verification with secure digital permits,
+            real-time monitoring, and automated gate management.
+        </p>
+
+        <div class="auth-features">
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                Digital QR & RFID permit management
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                Real-time vehicle entry & exit tracking
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                Automated violation alerts & enforcement
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                Centralized admin dashboard & analytics
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="auth-right">
+        @RenderBody()
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

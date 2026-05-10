@@ -16,6 +16,11 @@ namespace EFNco.Models
         public DateTime Timestamp { get; set; } = DateTime.Now;
         public string? InvalidReason { get; set; }
 
+        // Sprint 7 additions
+        public bool IsOvertime { get; set; }
+        public double OvertimeMinutes { get; set; }
+        public List<AuthorizedPersonSummary> AuthorizedPersons { get; set; } = new();
+
         public string DurationDisplay
         {
             get

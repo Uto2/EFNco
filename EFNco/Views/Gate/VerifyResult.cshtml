@@ -130,6 +130,36 @@
                     <div class="result-info-item"><label style="color:var(--gray-500);">Holder</label><span style="color:var(--white);">@Model.HolderName</span></div>
                     <div class="result-info-item"><label style="color:var(--gray-500);">Permit Type</label><span style="color:var(--white);">@Model.PermitType</span></div>
                 </div>
+
+                @if (!isEntry && Model.ParkingDuration.HasValue)
+                {
+                    <div class="duration-box" style="background:var(--navy-light);border:1px solid var(--border);">
+                        <div class="duration-label" style="color:var(--gray-400);">Parking Duration</div>
+                        <div class="duration-value" style="color:var(--cyan);">@Model.DurationDisplay</div>
+                        @if (Model.IsOvertime)
+                        {
+                            <div style="margin-top:8px;font-size:13px;color:var(--danger);font-weight:600;background:rgba(239,68,68,0.1);padding:6px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);">
+                                ⚠ Overtime by @Model.OvertimeMinutes.ToString("0.#") minutes
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (Model.AuthorizedPersons != null && Model.AuthorizedPersons.Any())
+                {
+                    <div style="margin-top:20px;text-align:left;">
+                        <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Authorized Persons</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            @foreach (var p in Model.AuthorizedPersons)
+                            {
+                                <div style="background:var(--navy-light);padding:10px 14px;border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                                    <div style="font-size:14px;font-weight:600;color:var(--white);">@p.FullName</div>
+                                    <div style="font-size:12px;color:var(--gray-400);">@p.Relationship</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
         }
         else

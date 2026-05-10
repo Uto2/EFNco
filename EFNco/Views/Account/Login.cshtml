@@ -88,11 +88,12 @@
                 <span asp-validation-for="Password" class="field-validation-error"></span>
             </div>
 
-            <div class="form-group" style="margin-bottom:28px;">
-                <label class="checkbox-row">
+            <div class="form-group" style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;">
+                <label class="checkbox-row" style="margin:0;">
                     <input asp-for="RememberMe" type="checkbox" />
                     Keep me signed in
                 </label>
+                <a asp-action="ForgotPassword" style="font-size:13px;color:var(--blue-light);text-decoration:none;">Forgot password?</a>
             </div>
 
             <button type="submit" class="btn-auth">

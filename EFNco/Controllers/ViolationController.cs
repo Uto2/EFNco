@@ -279,13 +279,12 @@ namespace EFNco.Controllers
             {
                 try
                 {
-                    await _emailService.SendViolationNoticeAsync(
+                    await _emailService.SendViolationIssuedAsync(
                         violator.Email ?? "",
                         violator.FullName,
-                        violation.ViolationTypeDisplay,
-                        fine,
                         violation.PlateNumber,
-                        violation.IssuedAt);
+                        violation.ViolationTypeDisplay,
+                        fine);
                 }
                 catch { /* Email failure is non-critical */ }
             });

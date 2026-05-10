@@ -200,7 +200,7 @@
                     var segments = urlObj.pathname.split('/').filter(Boolean);
                     var lastSeg  = segments[segments.length - 1];
                     if (lastSeg && lastSeg.length >= 16) {
-                        oken = lastSeg.trim();
+                        token = lastSeg.trim();
                     }
                 }
             } catch (e) {

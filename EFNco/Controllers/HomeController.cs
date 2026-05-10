@@ -22,6 +22,12 @@ namespace EFNco.Controllers
             if (User.Identity == null || !User.Identity.IsAuthenticated)
                 return View("Landing");
 
+            if (User.IsInRole("Guard"))
+                return RedirectToAction("Scan", "Gate");
+            
+            if (!User.IsInRole("Admin") && !User.IsInRole("Guard"))
+                return RedirectToAction("MyPermits", "Permit");
+
             var user = await _userManager.GetUserAsync(User);
             var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
 
