@@ -1,0 +1,74 @@
+@model List<EFNco.Models.ViolationListViewModel>
+@{
+    ViewData["Title"] = "My Violations";
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <div>
+        <h2 style="font-size:18px;">My Violations</h2>
+        <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">@Model.Count violation(s) on your account</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="efn-card" style="text-align:center;padding:60px 24px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="var(--success)" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <h3 style="font-size:17px;margin-bottom:8px;color:var(--success);">No violations!</h3>
+        <p style="color:var(--gray-400);font-size:14px;">You have no parking violations on record. Keep it up!</p>
+    </div>
+}
+else
+{
+    <div style="display:flex;flex-direction:column;gap:14px;">
+        @foreach (var v in Model)
+        {
+            var statusStyle = v.Status switch {
+                EFNco.Models.ViolationStatus.Unpaid   => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+                EFNco.Models.ViolationStatus.Paid     => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+                EFNco.Models.ViolationStatus.Appealed => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+                EFNco.Models.ViolationStatus.Resolved => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+                EFNco.Models.ViolationStatus.Dismissed => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)",
+                _ => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+            };
+            <div class="efn-card" style="padding:20px 24px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                    <div style="display:flex;gap:14px;align-items:flex-start;">
+                        <div style="width:44px;height:44px;border-radius:10px;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--danger)" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div style="font-size:15px;font-weight:600;color:var(--white);font-family:'Syne',sans-serif;">@v.PlateNumber</div>
+                            <div style="font-size:13px;color:var(--gray-400);margin-top:2px;">@v.ViolationTypeDisplay</div>
+                            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                                <span class="badge" style="@statusStyle">@v.Status</span>
+                                @if (v.HasAppeal)
+                                {
+                                    <span class="badge" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25);">Appeal Submitted</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--danger);">₱@v.FineAmount.ToString("N2")</div>
+                        <div style="font-size:12px;color:var(--gray-500);margin-top:2px;">@v.IssuedAt.ToString("MMM dd, yyyy")</div>
+                        <div style="font-size:11px;color:var(--gray-500);">by @v.IssuedByName</div>
+                    </div>
+                </div>
+                <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:10px;">
+                    <a asp-action="Details" asp-route-id="@v.Id" class="btn-efn btn-outline" style="padding:6px 14px;font-size:13px;">View Details</a>
+                    @if (v.Status == EFNco.Models.ViolationStatus.Unpaid && !v.HasAppeal)
+                    {
+                        <a asp-action="Appeal" asp-route-id="@v.Id" class="btn-efn btn-primary" style="padding:6px 14px;font-size:13px;">Submit Appeal</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

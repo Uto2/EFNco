@@ -1,0 +1,86 @@
+@model EFNco.Models.AppealViewModel
+@{
+    ViewData["Title"] = "Submit Appeal";
+}
+
+<div style="max-width:540px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="MyViolations" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to My Violations</a>
+    </div>
+
+    <div class="efn-card" style="margin-bottom:16px;border-color:rgba(245,158,11,0.2);">
+        <div class="efn-card-header">
+            <h3 style="font-size:15px;color:var(--warning);">Violation Being Appealed</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Plate</div>
+                <div style="font-size:15px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;letter-spacing:2px;">@Model.PlateNumber</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Violation</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.ViolationTypeDisplay</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Fine</div>
+                <div style="font-size:18px;font-weight:800;color:var(--danger);font-family:'Syne',sans-serif;">₱@Model.FineAmount.ToString("N2")</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Date Issued</div>
+                <div style="font-size:13px;color:var(--gray-300);">@Model.IssuedAt.ToString("MMM dd, yyyy")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="efn-card">
+        <div class="efn-card-header">
+            <h2 style="font-size:18px;">Submit Your Appeal</h2>
+            <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">
+                Provide a clear and detailed reason for your appeal. The administrator will review it and notify you of the result.
+            </p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger" style="margin-bottom:16px;">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>• @error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form asp-action="Appeal" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ViolationId" />
+            <input type="hidden" asp-for="PlateNumber" />
+            <input type="hidden" asp-for="ViolationTypeDisplay" />
+            <input type="hidden" asp-for="FineAmount" />
+            <input type="hidden" asp-for="IssuedAt" />
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label class="form-label">Reason for Appeal <span style="color:var(--danger)">*</span></label>
+                <textarea asp-for="Reason" class="form-control" rows="6"
+                          placeholder="Explain in detail why you believe this violation should be dismissed. Include any relevant circumstances, evidence, or context..."></textarea>
+                <span asp-validation-for="Reason" class="field-validation-error"></span>
+                <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">Minimum 20 characters required.</div>
+            </div>
+
+            <div class="alert alert-warning" style="margin-bottom:20px;">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>You can only submit <strong>one appeal per violation</strong>. Make sure your reason is complete before submitting.</span>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn-efn btn-primary">Submit Appeal</button>
+                <a asp-action="MyViolations" class="btn-efn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
