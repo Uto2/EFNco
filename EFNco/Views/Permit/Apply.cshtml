@@ -4,9 +4,9 @@
 }
 
 <div style="max-width:640px;">
-    <div style="margin-bottom:24px;">
-        <h2 style="font-size:22px;font-family:'Syne',sans-serif;">Apply for Parking Permit</h2>
-        <p style="color:var(--gray-400);font-size:14px;margin-top:4px;">Fill in your details below. Your application will be reviewed by an administrator.</p>
+    <div class="animated-banner" style="margin-bottom:24px; padding:24px 28px;">
+        <h2 style="font-size:22px;font-family:'Syne',sans-serif;color:var(--white);margin-bottom:4px;">Apply for Parking Permit</h2>
+        <p style="color:var(--gray-300);font-size:14px;">Fill in your details below. Your application will be reviewed by an administrator.</p>
     </div>
 
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="margin-bottom:20px;"></div>
@@ -15,7 +15,7 @@
         @Html.AntiForgeryToken()
 
         @* ── Step 1: Permit Type (pick this first so user knows what they're applying Testttt for) ── *@
-        <div class="efn-card" style="margin-bottom:20px;">
+        <div class="efn-card card-animated" style="margin-bottom:20px; animation-delay: 0.1s;">
             <div class="efn-card-header">
                 <h3 style="font-size:15px;color:var(--white);">📄 Permit Type</h3>
             </div>
@@ -37,7 +37,7 @@
         </div>
 
         @* ── Step 2: Vehicle Info ── *@
-        <div class="efn-card" style="margin-bottom:20px;">
+        <div class="efn-card card-animated" style="margin-bottom:20px; animation-delay: 0.2s;">
             <div class="efn-card-header">
                 <h3 style="font-size:15px;color:var(--white);">🚗 Vehicle Information</h3>
             </div>
@@ -85,7 +85,7 @@
         </div>
 
         @* ── Step 3: Documents ── *@
-        <div class="efn-card" style="margin-bottom:20px;">
+        <div class="efn-card card-animated" style="margin-bottom:20px; animation-delay: 0.3s;">
             <div class="efn-card-header">
                 <h3 style="font-size:15px;color:var(--white);">📎 Supporting Documents</h3>
             </div>

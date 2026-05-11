@@ -49,6 +49,22 @@ namespace EFNco.Controllers
                 })
                 .ToListAsync();
 
+            // ── Violation count warning for the user ──────────
+            var totalViolations = violations.Count;
+            var unpaidCount     = violations.Count(v => v.Status == ViolationStatus.Unpaid);
+            var hasRevokedPermit = await _db.ParkingPermits
+                .AnyAsync(p => p.UserId == user.Id &&
+                               p.Status == PermitStatus.Revoked &&
+                               (p.Remarks ?? "").Contains("exceeding the maximum"));
+
+            // Warning levels: 0 = safe, 1 = caution (1-2), 2 = danger (3+)
+            int warningLevel = totalViolations >= 3 ? 2 : totalViolations >= 1 ? 1 : 0;
+
+            ViewBag.ViolationCount  = totalViolations;
+            ViewBag.UnpaidCount     = unpaidCount;
+            ViewBag.WarningLevel    = warningLevel;
+            ViewBag.HasRevokedPermit = hasRevokedPermit;
+
             return View(violations);
         }
 
@@ -264,11 +280,41 @@ namespace EFNco.Controllers
             _db.Violations.Add(violation);
             await _db.SaveChangesAsync();
 
+            // --- Third Violation Enforcement Action ---
+            var violationCount = await _db.Violations.CountAsync(v => v.UserId == violator.Id);
+            
+            string appNotificationMsg = $"A parking violation has been issued for your vehicle {violation.PlateNumber} — {violation.ViolationTypeDisplay}. Fine: ₱{fine:N2}";
+            string adminWarning = "";
+
+            if (violationCount >= 3)
+            {
+                appNotificationMsg = $"🚨 FINAL WARNING: You have reached {violationCount} parking violations. Severe enforcement actions have been triggered.";
+                
+                // Penalty: Automatically revoke active permits
+                var activePermits = await _db.ParkingPermits
+                    .Where(p => p.UserId == violator.Id && p.Status == PermitStatus.Approved)
+                    .ToListAsync();
+                    
+                foreach (var p in activePermits)
+                {
+                    p.Status = PermitStatus.Revoked;
+                    p.Remarks = "Automatically revoked due to exceeding the maximum allowed parking violations (3).";
+                }
+                
+                if (activePermits.Any())
+                {
+                    await _db.SaveChangesAsync();
+                    appNotificationMsg += " Your active parking permit has been permanently REVOKED.";
+                    adminWarning = " The user has 3+ violations. Their active parking permit was automatically revoked.";
+                }
+            }
+            // ------------------------------------------
+
             // In-app notification to violator
             _db.AppNotifications.Add(new AppNotification
             {
                 UserId    = violator.Id,
-                Message   = $"A parking violation has been issued for your vehicle {violation.PlateNumber} — {violation.ViolationTypeDisplay}. Fine: ₱{fine:N2}",
+                Message   = appNotificationMsg,
                 Link      = $"/Violation/Details/{violation.Id}",
                 CreatedAt = DateTime.Now
             });
@@ -289,8 +335,13 @@ namespace EFNco.Controllers
                 catch { /* Email failure is non-critical */ }
             });
 
-            TempData["Success"] = $"Violation logged for {violation.PlateNumber}. Fine: ₱{fine:N2}. Notification sent.";
-            return RedirectToAction("AdminViolations", "Admin");
+            TempData["Success"] = $"Violation logged for {violation.PlateNumber}. Fine: ₱{fine:N2}. Notification sent.{adminWarning}";
+
+            // Guards cannot access Admin/AdminViolations — redirect them to Gate/Log instead
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("AdminViolations", "Admin");
+            else
+                return RedirectToAction("Log", "Gate");
         }
 
         // ── GET: /Violation/MarkPaid/{id} ────────────────────

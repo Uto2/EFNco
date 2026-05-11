@@ -1,6 +1,10 @@
 @model List<EFNco.Models.ViolationListViewModel>
 @{
     ViewData["Title"] = "My Violations";
+    int violationCount   = ViewBag.ViolationCount ?? 0;
+    int unpaidCount      = ViewBag.UnpaidCount    ?? 0;
+    int warningLevel     = ViewBag.WarningLevel   ?? 0;
+    bool hasRevokedPermit = ViewBag.HasRevokedPermit ?? false;
 }
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
@@ -9,6 +13,96 @@
         <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">@Model.Count violation(s) on your account</p>
     </div>
 </div>
+
+@* ── Permit Revoked Banner (highest severity) ── *@
+@if (hasRevokedPermit)
+{
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:18px 20px;
+                background:rgba(239,68,68,0.12);border:1.5px solid rgba(239,68,68,0.5);
+                border-radius:12px;margin-bottom:20px;animation:shake 0.4s ease;">
+        <div style="flex-shrink:0;width:44px;height:44px;border-radius:50%;
+                    background:rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+        </div>
+        <div>
+            <div style="font-size:15px;font-weight:700;color:#fca5a5;font-family:'Syne',sans-serif;margin-bottom:4px;">
+                🚨 Your Parking Permit Has Been Revoked
+            </div>
+            <div style="font-size:13px;color:#fca5a5;line-height:1.6;">
+                Your parking permit was <strong>automatically revoked</strong> because you have reached
+                <strong>@violationCount violation(s)</strong> — the maximum allowed is <strong>3</strong>.
+                Please contact the administration to resolve your outstanding violations and apply for a new permit.
+            </div>
+        </div>
+    </div>
+}
+
+@* ── Violation Count Warning Banners ── *@
+@if (warningLevel == 2 && !hasRevokedPermit)
+{
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;
+                background:rgba(239,68,68,0.08);border:1.5px solid rgba(239,68,68,0.35);
+                border-radius:12px;margin-bottom:20px;">
+        <div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;
+                    background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <div>
+            <div style="font-size:14px;font-weight:700;color:#f87171;font-family:'Syne',sans-serif;margin-bottom:3px;">
+                ⚠️ Final Warning — Enforcement Action Triggered
+            </div>
+            <div style="font-size:13px;color:#fca5a5;line-height:1.6;">
+                You have <strong>@violationCount parking violation(s)</strong> on your account.
+                You have exceeded the maximum limit of <strong>3 violations</strong>.
+                Any active parking permits may be subject to <strong>automatic revocation</strong>.
+                Please resolve your unpaid violations immediately.
+            </div>
+        </div>
+    </div>
+}
+else if (warningLevel == 1)
+{
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;
+                background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.3);
+                border-radius:12px;margin-bottom:20px;">
+        <div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;
+                    background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fbbf24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <div>
+            <div style="font-size:14px;font-weight:700;color:#fbbf24;font-family:'Syne',sans-serif;margin-bottom:3px;">
+                ⚠️ Violation Notice — Please Take Action
+            </div>
+            <div style="font-size:13px;color:#fcd34d;line-height:1.6;">
+                You have <strong>@violationCount parking violation(s)</strong>
+                (@unpaidCount unpaid) on your account.
+                At <strong>3 violations</strong>, your parking permit will be <strong>automatically revoked</strong>.
+                Please settle your fines or file an appeal if you believe a violation was issued in error.
+            </div>
+            @* Progress bar toward 3-violation limit *@
+            <div style="margin-top:10px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-bottom:4px;">
+                    <span>Violations</span>
+                    <span>@violationCount / 3 before revocation</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+                    <div style="height:100%;width:@(Math.Min((violationCount * 100 / 3), 100))%;
+                                background:linear-gradient(90deg,#fbbf24,#f97316);
+                                border-radius:4px;transition:width 0.5s ease;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @if (!Model.Any())
 {

@@ -1,3 +1,19 @@
+@using Microsoft.AspNetCore.Identity
+@using EFNco.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var globalUserName = currentUser?.FullName;
+    
+    if (string.IsNullOrWhiteSpace(globalUserName)) {
+        globalUserName = User.Identity?.Name ?? "User";
+    }
+
+    var globalUserRole = User.IsInRole("Admin") ? "Admin" : 
+                         User.IsInRole("Guard") ? "Guard" : "User";
+                         
+    var globalInitials = !string.IsNullOrWhiteSpace(globalUserName) ? globalUserName.Substring(0, 1).ToUpper() : "U";
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -169,13 +185,33 @@
 
                 <!-- User card at bottom -->
                 <div class="sidebar-footer">
-                    <div class="user-card">
-                        <div class="user-avatar">
-                            @(ViewBag.UserName?.ToString()?.Substring(0, 1)?.ToUpper() ?? "U")
+                    <style>
+                        .user-card-animated {
+                            transition: all 0.3s ease;
+                            cursor: pointer;
+                            position: relative;
+                            overflow: hidden;
+                        }
+                        .user-card-animated:hover {
+                            background: rgba(37,99,235,0.1);
+                            transform: translateY(-2px);
+                        }
+                        .avatar-pulse {
+                            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+                        }
+                        @@keyframes pulse-ring {
+                            0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.4); }
+                            70% { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+                            100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+                        }
+                    </style>
+                    <div class="user-card user-card-animated">
+                        <div class="user-avatar avatar-pulse">
+                            @globalInitials
                         </div>
                         <div class="user-info">
-                            <div class="user-name">@ViewBag.UserName</div>
-                            <div class="user-role">@ViewBag.Role</div>
+                            <div class="user-name">@globalUserName</div>
+                            <div class="user-role" style="color:var(--blue-glow);">@globalUserRole</div>
                         </div>
                     </div>
                 </div>
