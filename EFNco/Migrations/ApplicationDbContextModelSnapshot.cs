@@ -22,6 +22,40 @@ namespace EFNco.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("EFNco.Models.AppNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AppNotifications");
+                });
+
             modelBuilder.Entity("EFNco.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -107,6 +141,149 @@ namespace EFNco.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("EFNco.Models.AuthorizedPerson", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AddedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ContactNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("IdNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PermitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhotoContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("PhotoData")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("PhotoFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Relationship")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddedByUserId");
+
+                    b.HasIndex("PermitId");
+
+                    b.ToTable("AuthorizedPersons");
+                });
+
+            modelBuilder.Entity("EFNco.Models.EntryExitLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<TimeSpan?>("ParkingDuration")
+                        .HasColumnType("time");
+
+                    b.Property<int?>("PermitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VerifiedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermitId");
+
+                    b.HasIndex("VerifiedByUserId");
+
+                    b.ToTable("EntryExitLogs");
+                });
+
+            modelBuilder.Entity("EFNco.Models.ParkingDurationSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AutoViolation")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("GraceMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<double>("MaxHours")
+                        .HasColumnType("float");
+
+                    b.Property<int>("PermitType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermitType")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("ParkingDurationSettings");
+                });
+
             modelBuilder.Entity("EFNco.Models.ParkingPermit", b =>
                 {
                     b.Property<int>("Id")
@@ -138,6 +315,10 @@ namespace EFNco.Migrations
 
                     b.Property<byte[]>("QRCodeData")
                         .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("QRToken")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("RegistrationFileContentType")
                         .HasMaxLength(100)
@@ -234,6 +415,105 @@ namespace EFNco.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("EFNco.Models.Violation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("FineAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IssuedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("PermitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ViolationType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssuedByUserId");
+
+                    b.HasIndex("PermitId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Violations");
+                });
+
+            modelBuilder.Entity("EFNco.Models.ViolationAppeal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminResponse")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ViolationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("ViolationId")
+                        .IsUnique();
+
+                    b.ToTable("ViolationAppeals");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -369,6 +649,64 @@ namespace EFNco.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("EFNco.Models.AppNotification", b =>
+                {
+                    b.HasOne("EFNco.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EFNco.Models.AuthorizedPerson", b =>
+                {
+                    b.HasOne("EFNco.Models.ApplicationUser", "AddedBy")
+                        .WithMany()
+                        .HasForeignKey("AddedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EFNco.Models.ParkingPermit", "Permit")
+                        .WithMany("AuthorizedPersons")
+                        .HasForeignKey("PermitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AddedBy");
+
+                    b.Navigation("Permit");
+                });
+
+            modelBuilder.Entity("EFNco.Models.EntryExitLog", b =>
+                {
+                    b.HasOne("EFNco.Models.ParkingPermit", "Permit")
+                        .WithMany()
+                        .HasForeignKey("PermitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("EFNco.Models.ApplicationUser", "VerifiedBy")
+                        .WithMany()
+                        .HasForeignKey("VerifiedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Permit");
+
+                    b.Navigation("VerifiedBy");
+                });
+
+            modelBuilder.Entity("EFNco.Models.ParkingDurationSetting", b =>
+                {
+                    b.HasOne("EFNco.Models.ApplicationUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("EFNco.Models.ParkingPermit", b =>
                 {
                     b.HasOne("EFNco.Models.ApplicationUser", "ReviewedBy")
@@ -404,6 +742,50 @@ namespace EFNco.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("EFNco.Models.Violation", b =>
+                {
+                    b.HasOne("EFNco.Models.ApplicationUser", "IssuedBy")
+                        .WithMany()
+                        .HasForeignKey("IssuedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EFNco.Models.ParkingPermit", "Permit")
+                        .WithMany()
+                        .HasForeignKey("PermitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("EFNco.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("IssuedBy");
+
+                    b.Navigation("Permit");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EFNco.Models.ViolationAppeal", b =>
+                {
+                    b.HasOne("EFNco.Models.ApplicationUser", "ReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("EFNco.Models.Violation", "Violation")
+                        .WithOne("Appeal")
+                        .HasForeignKey("EFNco.Models.ViolationAppeal", "ViolationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReviewedBy");
+
+                    b.Navigation("Violation");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -457,9 +839,19 @@ namespace EFNco.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EFNco.Models.ParkingPermit", b =>
+                {
+                    b.Navigation("AuthorizedPersons");
+                });
+
             modelBuilder.Entity("EFNco.Models.Vehicle", b =>
                 {
                     b.Navigation("Permit");
+                });
+
+            modelBuilder.Entity("EFNco.Models.Violation", b =>
+                {
+                    b.Navigation("Appeal");
                 });
 #pragma warning restore 612, 618
         }

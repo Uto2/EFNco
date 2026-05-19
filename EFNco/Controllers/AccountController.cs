@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 using EFNco.Models;
+using EFNco.Services;
 
 namespace EFNco.Controllers
 {
@@ -9,15 +12,18 @@ namespace EFNco.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailService _emailService;
 
         public AccountController(UserManager<ApplicationUser> userManager,
-                                 SignInManager<ApplicationUser> signInManager)
+                                 SignInManager<ApplicationUser> signInManager,
+                                 IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailService = emailService;
         }
 
-        // GET: /Account/Login
+        // ── GET: /Account/Login ───────────────────────────────
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -28,7 +34,7 @@ namespace EFNco.Controllers
             return View();
         }
 
-        // POST: /Account/Login
+        // ── POST: /Account/Login ──────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
@@ -65,7 +71,7 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // GET: /Account/Register
+        // ── GET: /Account/Register ────────────────────────────
         [HttpGet]
         public IActionResult Register()
         {
@@ -75,7 +81,7 @@ namespace EFNco.Controllers
             return View();
         }
 
-        // POST: /Account/Register
+        // ── POST: /Account/Register ───────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -103,7 +109,22 @@ namespace EFNco.Controllers
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                // New registrations get no role by default — Admin assigns roles
+                // ✅ Sprint 7.8 — Send email confirmation
+                try
+                {
+                    var confirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmToken));
+                    var confirmUrl = Url.Action("ConfirmEmail", "Account",
+                        new { userId = user.Id, token = encodedToken }, Request.Scheme)!;
+
+                    await _emailService.SendEmailConfirmationAsync(user.Email!, user.FullName, confirmUrl);
+                }
+                catch
+                {
+                    // Email sending failure should not block registration
+                }
+
+                // Sign in immediately — remove this if you want to enforce email confirmation first
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 TempData["Success"] = "Account created successfully! Welcome to EFNco.";
                 return RedirectToAction("Index", "Home");
@@ -115,7 +136,7 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // POST: /Account/Logout
+        // ── POST: /Account/Logout ─────────────────────────────
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -125,14 +146,11 @@ namespace EFNco.Controllers
             return RedirectToAction("Login");
         }
 
-        // GET: /Account/AccessDenied
+        // ── GET: /Account/AccessDenied ────────────────────────
         [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
+        public IActionResult AccessDenied() => View();
 
-        // GET: /Account/Profile
+        // ── GET: /Account/Profile ─────────────────────────────
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Profile()
@@ -154,7 +172,7 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // POST: /Account/Profile
+        // ── POST: /Account/Profile ────────────────────────────
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -184,12 +202,119 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // GET: /Account/ChangePassword
+        // ── GET: /Account/ForgotPassword ─────────────────────
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword() => View();
+
+        // ── POST: /Account/ForgotPassword ────────────────────
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email!);
+
+            // Always redirect regardless — prevents email enumeration
+            if (user != null)
+            {
+                try
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+                    var resetUrl = Url.Action("ResetPassword", "Account",
+                        new { token = encoded, email = user.Email }, Request.Scheme)!;
+
+                    await _emailService.SendPasswordResetAsync(user.Email!, user.FullName, resetUrl);
+                }
+                catch
+                {
+                    // Email failure — still redirect to confirmation so user isn't stuck
+                }
+            }
+
+            return RedirectToAction("ForgotPasswordConfirmation");
+        }
+
+        // ── GET: /Account/ForgotPasswordConfirmation ──────────
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordConfirmation() => View();
+
+        // ── GET: /Account/ResetPassword ───────────────────────
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string? token, string? email)
+        {
+            if (token == null || email == null)
+                return BadRequest("Invalid password reset link.");
+
+            return View(new ResetPasswordViewModel { Token = token, Email = email });
+        }
+
+        // ── POST: /Account/ResetPassword ──────────────────────
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email!);
+            if (user == null)
+            {
+                // Don't reveal that user doesn't exist
+                return RedirectToAction("ResetPasswordConfirmation");
+            }
+
+            var decodedToken = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(model.Token!));
+
+            var result = await _userManager.ResetPasswordAsync(
+                user, decodedToken, model.Password!);
+
+            if (result.Succeeded)
+                return RedirectToAction("ResetPasswordConfirmation");
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
+            return View(model);
+        }
+
+        // ── GET: /Account/ResetPasswordConfirmation ───────────
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordConfirmation() => View();
+
+        // ── GET: /Account/ConfirmEmail ────────────────────────
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (userId == null || token == null)
+                return BadRequest("Invalid confirmation link.");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var decodedToken = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(token));
+
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+            ViewBag.Success = result.Succeeded;
+            return View();
+        }
+
+        // ── GET: /Account/ChangePassword ──────────────────────
         [HttpGet]
         [Authorize]
         public IActionResult ChangePassword() => View();
 
-        // POST: /Account/ChangePassword
+        // ── POST: /Account/ChangePassword ─────────────────────
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -201,12 +326,14 @@ namespace EFNco.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login");
 
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            var result = await _userManager.ChangePasswordAsync(
+                user, model.CurrentPassword, model.NewPassword);
+
             if (result.Succeeded)
             {
                 await _signInManager.RefreshSignInAsync(user);
                 TempData["Success"] = "Password changed successfully.";
-                return RedirectToAction("Profile");
+                return RedirectToAction("ChangePassword");
             }
 
             foreach (var error in result.Errors)

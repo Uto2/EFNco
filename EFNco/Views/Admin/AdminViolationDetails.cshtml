@@ -1,0 +1,191 @@
+@model EFNco.Models.ViolationDetailsViewModel
+@{
+    ViewData["Title"] = "Violation Details";
+    var statusStyle = Model.Status switch {
+        EFNco.Models.ViolationStatus.Unpaid    => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        EFNco.Models.ViolationStatus.Paid      => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+        EFNco.Models.ViolationStatus.Appealed  => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+        EFNco.Models.ViolationStatus.Dismissed => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)",
+        _ => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+    };
+}
+
+@* ── Confirmation Modal ── *@
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;align-items:center;justify-content:center;">
+    <div style="background:var(--navy-light);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:380px;width:90%;margin:auto;">
+        <h3 id="confirmTitle" style="font-size:17px;margin-bottom:8px;font-family:'Syne',sans-serif;"></h3>
+        <p id="confirmMsg" style="font-size:14px;color:var(--gray-400);margin-bottom:24px;"></p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeConfirm()" class="btn-efn btn-outline" style="padding:8px 18px;">Cancel</button>
+            <button id="confirmBtn" class="btn-efn btn-danger" style="padding:8px 18px;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div style="max-width:600px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="AdminViolations" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to Violations</a>
+    </div>
+
+    @* ── Violation Summary ── *@
+    <div class="efn-card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            <div>
+                <h2 style="font-size:20px;font-family:'Syne',sans-serif;">Violation #@Model.Id</h2>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">Issued @Model.IssuedAt.ToString("MMMM dd, yyyy h:mm tt")</p>
+            </div>
+            <span class="badge" style="@statusStyle;font-size:13px;padding:5px 14px;">@Model.Status</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Violator</div>
+                <div style="font-size:14px;color:var(--white);font-weight:500;">@Model.ViolatorName</div>
+                <div style="font-size:12px;color:var(--gray-400);">@Model.ViolatorEmail</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Plate Number</div>
+                <div style="font-size:18px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">@Model.PlateNumber</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Violation Type</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.ViolationTypeDisplay</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Fine Amount</div>
+                <div style="font-size:18px;font-weight:700;color:#fca5a5;">₱@Model.FineAmount.ToString("N2")</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Issued By</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.IssuedByName</div>
+            </div>
+            @if (Model.ResolvedAt.HasValue)
+            {
+                <div>
+                    <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Resolved On</div>
+                    <div style="font-size:14px;color:var(--gray-300);">@Model.ResolvedAt.Value.ToString("MMM dd, yyyy")</div>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div style="padding:12px;background:var(--navy);border-radius:8px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Notes</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.Notes</div>
+            </div>
+        }
+    </div>
+
+    @* ── Appeal Section ── *@
+    @if (Model.HasAppeal)
+    {
+        <div class="efn-card" style="margin-bottom:16px;border-color:rgba(245,158,11,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:#fcd34d;">⚖ Appeal Submitted</h3>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Submitted @Model.AppealSubmittedAt?.ToString("MMMM dd, yyyy")</p>
+            </div>
+
+            <div style="padding:12px;background:var(--navy);border-radius:8px;margin-bottom:16px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Reason</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.AppealReason</div>
+            </div>
+
+            @if (Model.AppealIsReviewed)
+            {
+                <div style="padding:12px;background:var(--navy);border-radius:8px;">
+                    <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
+                        Decision: <span style="color:@(Model.AppealIsApproved ? "#6ee7b7" : "#fca5a5")">@(Model.AppealIsApproved ? "Approved — Dismissed" : "Denied")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.AppealAdminResponse))
+                    {
+                        <div style="font-size:14px;color:var(--gray-300);">@Model.AppealAdminResponse</div>
+                    }
+                </div>
+            }
+            else
+            {
+                @* ── Review Appeal Form ── *@
+                <form id="approveForm" asp-action="ReviewAppeal" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="approve" value="true" />
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">Admin Response <span style="color:var(--gray-500)">(Optional)</span></label>
+                        <textarea name="response" class="form-control" rows="2" placeholder="Leave a note for the violator..."></textarea>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button type="button" class="btn-efn" style="background:var(--success);color:var(--navy);font-weight:600;flex:1;"
+                                onclick="showConfirm('Approve Appeal?','The violation will be dismissed and the violator will be notified.','approveForm')">
+                            ✓ Approve Appeal
+                        </button>
+                    </div>
+                </form>
+
+                <form id="denyForm" asp-action="ReviewAppeal" asp-route-id="@Model.Id" method="post" style="margin-top:10px;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="approve" value="false" />
+                    <div style="display:flex;gap:10px;">
+                        <button type="button" class="btn-efn btn-danger" style="flex:1;"
+                                onclick="showConfirm('Deny Appeal?','The violation remains unpaid and the violator will be notified.','denyForm')">
+                            ✕ Deny Appeal
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    }
+
+    @* ── Admin Actions ── *@
+    @if (Model.Status == EFNco.Models.ViolationStatus.Unpaid || Model.Status == EFNco.Models.ViolationStatus.Appealed)
+    {
+        <div class="efn-card" style="margin-bottom:16px;border-color:rgba(16,185,129,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--success);">Mark as Paid</h3>
+            </div>
+            <form id="paidForm" asp-action="MarkPaid" asp-controller="Violation" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <button type="button" class="btn-efn" style="background:var(--success);color:var(--navy);font-weight:600;"
+                        onclick="showConfirm('Mark as Paid?','This will mark the violation as paid and notify the violator.','paidForm')">
+                    ✓ Mark as Paid
+                </button>
+            </form>
+        </div>
+
+        <div class="efn-card" style="border-color:rgba(100,116,139,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--gray-400);">Dismiss Violation</h3>
+            </div>
+            <form id="dismissForm" asp-action="DismissViolation" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <button type="button" class="btn-efn btn-outline"
+                        onclick="showConfirm('Dismiss Violation?','The violation will be dismissed and the violator will be notified.','dismissForm')">
+                    Dismiss
+                </button>
+            </form>
+        </div>
+    }
+</div>
+
+<script>
+    var _pendingFormId = null;
+
+    function showConfirm(title, msg, formId) {
+        _pendingFormId = formId;
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMsg').textContent   = msg;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    function closeConfirm() {
+        _pendingFormId = null;
+        document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', function () {
+        if (_pendingFormId) document.getElementById(_pendingFormId).submit();
+    });
+
+    document.getElementById('confirmModal').addEventListener('click', function (e) {
+        if (e.target === this) closeConfirm();
+    });
+</script>

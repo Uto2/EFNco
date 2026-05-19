@@ -10,8 +10,8 @@ namespace EFNco.Data
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-            // Seed Roles
-            string[] roles = { "Admin" };
+            // Seed Roles — Sprint 4 adds Guard
+            string[] roles = { "Admin", "Guard" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
@@ -34,10 +34,30 @@ namespace EFNco.Data
                     EmailConfirmed = true,
                     IsActive = true
                 };
-
                 var result = await userManager.CreateAsync(admin, adminPassword);
                 if (result.Succeeded)
                     await userManager.AddToRoleAsync(admin, "Admin");
+            }
+
+            // Seed Default Guard
+            const string guardEmail = "guard@efnco.com";
+            const string guardPassword = "Guard@123";
+
+            if (await userManager.FindByEmailAsync(guardEmail) == null)
+            {
+                var guard = new ApplicationUser
+                {
+                    UserName = guardEmail,
+                    Email = guardEmail,
+                    FirstName = "Gate",
+                    LastName = "Guard",
+                    Department = "Security",
+                    EmailConfirmed = true,
+                    IsActive = true
+                };
+                var result = await userManager.CreateAsync(guard, guardPassword);
+                if (result.Succeeded)
+                    await userManager.AddToRoleAsync(guard, "Guard");
             }
         }
     }

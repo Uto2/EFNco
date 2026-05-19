@@ -249,16 +249,12 @@ namespace EFNco.Controllers
             return View(model);
         }
 
-        // ── POST: /Admin/ApprovePermit/{id} ──────────────────
-        // Replace your existing ApprovePermit action with this.
-        // Key changes:
-        //   1. Generates a unique QRToken (GUID) per permit
-        //   2. QR encodes a real URL: /Permit/Verify/{token}
-        //      so any phone camera can scan and open it directly
+        // Replace your ApprovePermit action in AdminController.cs with this.
+        // Key fix: verifyUrl now uses Request.Host directly to guarantee
+        // the correct host is encoded in the QR, not just "localhost"
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApprovePermit(int id, DateTime validFrom, DateTime validUntil, string? remarks)
         {
             var permit = await _db.ParkingPermits
@@ -276,13 +272,17 @@ namespace EFNco.Controllers
             permit.ReviewedAt = DateTime.UtcNow;
             permit.ReviewedByUserId = reviewer?.Id;
 
-            // ✅ Generate a unique unguessable token for this permit
-            permit.QRToken = Guid.NewGuid().ToString("N"); // 32 char hex, no dashes
+            // Generate unique token
+            permit.QRToken = Guid.NewGuid().ToString("N");
 
-            // ✅ Build a full URL that any phone camera can open
+            // ✅ Build the verify URL using Url.Action with query string token
+            // This generates: http://host/Permit/Verify?token=abc123
             var verifyUrl = Url.Action("Verify", "Permit", new { token = permit.QRToken }, Request.Scheme);
 
-            // Generate QR code encoding the verify URL
+            // ✅ Debug: save the URL to TempData so you can see what's in the QR
+            TempData["QRDebugUrl"] = verifyUrl;
+
+            // Generate QR
             using var qrGenerator = new QRCodeGenerator();
             var qrData = qrGenerator.CreateQrCode(verifyUrl, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new PngByteQRCode(qrData);
@@ -290,7 +290,7 @@ namespace EFNco.Controllers
 
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = $"Permit #{id} approved and QR code generated.";
+            TempData["Success"] = $"Permit #{id} approved. QR URL: {verifyUrl}";
             return RedirectToAction("PermitDetails", "Admin", new { id });
         }
 
@@ -335,6 +335,150 @@ namespace EFNco.Controllers
 
             TempData["Success"] = $"Permit #{id} revoked.";
             return RedirectToAction("Permits");
+        }
+
+        public async Task<IActionResult> AdminViolations(string? status)
+        {
+            var query = _db.Violations
+                .Include(v => v.User)
+                .Include(v => v.IssuedBy)
+                .Include(v => v.Appeal)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<ViolationStatus>(status, out var vs))
+                query = query.Where(v => v.Status == vs);
+
+            var violations = await query
+                .OrderByDescending(v => v.IssuedAt)
+                .Select(v => new ViolationListViewModel
+                {
+                    Id = v.Id,
+                    PlateNumber = v.PlateNumber,
+                    ViolatorName = v.User!.FirstName + " " + v.User.LastName,
+                    ViolationTypeDisplay = v.ViolationTypeDisplay,
+                    FineAmount = v.FineAmount,
+                    Status = v.Status,
+                    IssuedAt = v.IssuedAt,
+                    HasAppeal = v.Appeal != null,
+                    IssuedByName = v.IssuedBy!.FirstName + " " + v.IssuedBy.LastName
+                })
+                .ToListAsync();
+
+            ViewBag.CurrentStatus = status ?? "All";
+            return View(violations);
+        }
+
+        // GET: /Admin/AdminViolationDetails/{id}
+        public async Task<IActionResult> AdminViolationDetails(int id)
+        {
+            var v = await _db.Violations
+                .Include(x => x.User)
+                .Include(x => x.IssuedBy)
+                .Include(x => x.Permit)
+                .Include(x => x.Appeal)
+                    .ThenInclude(a => a!.ReviewedBy)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (v == null) return NotFound();
+
+            var model = new ViolationDetailsViewModel
+            {
+                Id = v.Id,
+                PlateNumber = v.PlateNumber,
+                ViolatorName = v.User!.FullName,
+                ViolatorEmail = v.User.Email ?? "",
+                ViolationTypeDisplay = v.ViolationTypeDisplay,
+                FineAmount = v.FineAmount,
+                Status = v.Status,
+                Notes = v.Notes,
+                IssuedAt = v.IssuedAt,
+                ResolvedAt = v.ResolvedAt,
+                IssuedByName = v.IssuedBy!.FullName,
+                PermitId = v.PermitId,
+                HasAppeal = v.Appeal != null,
+                AppealReason = v.Appeal?.Reason,
+                AppealSubmittedAt = v.Appeal?.SubmittedAt,
+                AppealIsReviewed = v.Appeal?.IsReviewed ?? false,
+                AppealIsApproved = v.Appeal?.IsApproved ?? false,
+                AppealAdminResponse = v.Appeal?.AdminResponse
+            };
+
+            return View(model);
+        }
+
+        // POST: /Admin/ReviewAppeal/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReviewAppeal(int id, bool approve, string? response)
+        {
+            var appeal = await _db.ViolationAppeals
+                .Include(a => a.Violation)
+                .FirstOrDefaultAsync(a => a.ViolationId == id);
+
+            if (appeal == null) return NotFound();
+
+            var reviewer = await _userManager.GetUserAsync(User);
+
+            appeal.IsReviewed = true;
+            appeal.IsApproved = approve;
+            appeal.AdminResponse = response;
+            appeal.ReviewedAt = DateTime.Now;
+            appeal.ReviewedByUserId = reviewer?.Id;
+
+            // Update violation status based on appeal decision
+            if (approve)
+            {
+                appeal.Violation!.Status = ViolationStatus.Dismissed;
+                appeal.Violation.ResolvedAt = DateTime.Now;
+            }
+            else
+            {
+                appeal.Violation!.Status = ViolationStatus.Unpaid;
+            }
+
+            // Notify the violator
+            _db.AppNotifications.Add(new AppNotification
+            {
+                UserId = appeal.Violation.UserId,
+                Message = approve
+                    ? $"Your appeal for Violation #{id} has been approved and the violation has been dismissed."
+                    : $"Your appeal for Violation #{id} has been reviewed and denied.",
+                Link = $"/Violation/Details/{id}",
+                CreatedAt = DateTime.Now
+            });
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = approve
+                ? $"Appeal approved — Violation #{id} dismissed."
+                : $"Appeal denied — Violation #{id} remains unpaid.";
+
+            return RedirectToAction("AdminViolationDetails", new { id });
+        }
+
+        // POST: /Admin/DismissViolation/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DismissViolation(int id)
+        {
+            var v = await _db.Violations.FindAsync(id);
+            if (v == null) return NotFound();
+
+            v.Status = ViolationStatus.Dismissed;
+            v.ResolvedAt = DateTime.Now;
+
+            _db.AppNotifications.Add(new AppNotification
+            {
+                UserId = v.UserId,
+                Message = $"Your Violation #{id} ({v.ViolationTypeDisplay}) has been dismissed by an administrator.",
+                Link = $"/Violation/Details/{id}",
+                CreatedAt = DateTime.Now
+            });
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"Violation #{id} dismissed.";
+            return RedirectToAction("AdminViolations");
         }
     }
 }

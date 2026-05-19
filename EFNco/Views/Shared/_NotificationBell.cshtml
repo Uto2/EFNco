@@ -1,0 +1,93 @@
+@{
+    var userId = ViewBag.CurrentUserId as string;
+    int unread = 0;
+    List<EFNco.Models.AppNotification> notifications = new();
+
+    if (!string.IsNullOrEmpty(userId))
+    {
+        var db = ViewContext.HttpContext.RequestServices.GetService(typeof(EFNco.Data.ApplicationDbContext)) as EFNco.Data.ApplicationDbContext;
+        if (db != null)
+        {
+            unread = db.AppNotifications.Count(n => n.UserId == userId && !n.IsRead);
+            notifications = db.AppNotifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(8)
+                .ToList();
+        }
+    }
+}
+
+<div style="position:relative;display:inline-block;">
+    <button onclick="toggleNotifications()" type="button"
+            style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:6px;display:flex;align-items:center;position:relative;transition:color 0.2s;"
+            onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--gray-400)'">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        @if (unread > 0)
+        {
+            <span style="position:absolute;top:-2px;right:-2px;background:var(--danger);color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;">
+                @(unread > 9 ? "9+" : unread.ToString())
+            </span>
+        }
+    </button>
+
+    <div id="notif-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:340px;background:var(--navy-mid);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:200;overflow:hidden;">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:14px;font-weight:600;color:var(--white);">Notifications</span>
+            @if (unread > 0)
+            {
+                <a href="/Notification/MarkAllRead" style="font-size:12px;color:var(--blue-light);text-decoration:none;">Mark all read</a>
+            }
+        </div>
+
+        @if (!notifications.Any())
+        {
+            <div style="padding:24px;text-align:center;font-size:13px;color:var(--gray-500);">No notifications yet</div>
+        }
+        else
+        {
+            @foreach (var n in notifications)
+            {
+                <a href="@(n.Link ?? "#")" onclick="markRead(@n.Id)"
+                   style="display:block;padding:12px 16px;border-bottom:1px solid var(--border);text-decoration:none;transition:background 0.15s;background:@(!n.IsRead ? "rgba(37,99,235,0.06)" : "transparent")"
+                   onmouseover="this.style.background='var(--navy-light)'"
+                   onmouseout="this.style.background='@(!n.IsRead ? "rgba(37,99,235,0.06)" : "transparent")'">
+                    <div style="display:flex;gap:10px;align-items:flex-start;">
+                        @if (!n.IsRead)
+                        {
+                            <div style="width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:5px;"></div>
+                        }
+                        else
+                        {
+                            <div style="width:7px;height:7px;flex-shrink:0;"></div>
+                        }
+                        <div>
+                            <div style="font-size:13px;color:var(--gray-200);line-height:1.4;">@n.Message</div>
+                            <div style="font-size:11px;color:var(--gray-500);margin-top:3px;">@n.CreatedAt.ToString("MMM dd, h:mm tt")</div>
+                        </div>
+                    </div>
+                </a>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    function toggleNotifications() {
+        var d = document.getElementById('notif-dropdown');
+        d.style.display = d.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function markRead(id) {
+        fetch('/Notification/MarkRead/' + id, { method: 'POST', headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' } });
+    }
+
+    document.addEventListener('click', function(e) {
+        var dropdown = document.getElementById('notif-dropdown');
+        if (dropdown && !dropdown.contains(e.target) && !e.target.closest('button[onclick="toggleNotifications()"]')) {
+            dropdown.style.display = 'none';
+        }
+    });
+</script>

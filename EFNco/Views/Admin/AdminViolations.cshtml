@@ -1,0 +1,86 @@
+@model List<EFNco.Models.ViolationListViewModel>
+@{
+    ViewData["Title"] = "Manage Violations";
+    var statuses = new[] { "All", "Unpaid", "Paid", "Appealed", "Resolved", "Dismissed" };
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h2 style="font-size:18px;">All Violations</h2>
+        <p style="font-size:13px;color:var(--gray-400);margin-top:2px;">@Model.Count violation(s) found</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        @foreach (var s in statuses)
+        {
+            <a asp-action="AdminViolations" asp-route-status="@(s == "All" ? "" : s)"
+               style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;
+               @(ViewBag.CurrentStatus == s ? "background:var(--blue);color:white;" : "background:var(--navy-light);color:var(--gray-300);border:1px solid var(--border);")">
+                @s
+            </a>
+        }
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="efn-card" style="text-align:center;padding:48px 24px;">
+        <p style="color:var(--gray-400);font-size:14px;">No violations found.</p>
+    </div>
+}
+else
+{
+    <div class="efn-card" style="padding:0;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid var(--border);">
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">#</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Plate</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Violator</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Type</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Fine</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Status</th>
+                    <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Issued</th>
+                    <th style="padding:14px 20px;text-align:right;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:1px;text-transform:uppercase;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model)
+                {
+                    var statusStyle = v.Status switch {
+                        EFNco.Models.ViolationStatus.Unpaid   => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+                        EFNco.Models.ViolationStatus.Paid     => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+                        EFNco.Models.ViolationStatus.Appealed => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+                        EFNco.Models.ViolationStatus.Dismissed => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)",
+                        _ => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)"
+                    };
+                    <tr style="border-bottom:1px solid var(--border);transition:background 0.15s;"
+                        onmouseover="this.style.background='var(--navy-light)'"
+                        onmouseout="this.style.background=''">
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-500);">#@v.Id</td>
+                        <td style="padding:14px 20px;font-size:14px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;">@v.PlateNumber</td>
+                        <td style="padding:14px 20px;">
+                            <div style="font-size:14px;color:var(--white);">@v.ViolatorName</div>
+                            <div style="font-size:11px;color:var(--gray-500);">by @v.IssuedByName</div>
+                        </td>
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-300);">@v.ViolationTypeDisplay</td>
+                        <td style="padding:14px 20px;font-size:14px;font-weight:600;color:var(--white);">₱@v.FineAmount.ToString("N2")</td>
+                        <td style="padding:14px 20px;">
+                            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                                <span class="badge" style="@statusStyle">@v.Status</span>
+                                @if (v.HasAppeal)
+                                {
+                                    <span class="badge" style="background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25);font-size:10px;">⚖ Appeal</span>
+                                }
+                            </div>
+                        </td>
+                        <td style="padding:14px 20px;font-size:13px;color:var(--gray-400);">@v.IssuedAt.ToString("MMM dd, yyyy")</td>
+                        <td style="padding:14px 20px;text-align:right;">
+                            <a asp-action="AdminViolationDetails" asp-route-id="@v.Id"
+                               class="btn-efn btn-primary" style="padding:6px 14px;font-size:12px;">Review</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

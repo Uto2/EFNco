@@ -1,0 +1,194 @@
+@model EFNco.Models.DashboardViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>EFNco Analytics Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #1e293b; background: white; }
+        .header { background: #0a0f1e; color: white; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; }
+        .header-title { font-size: 20px; font-weight: 800; }
+        .header-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .header-date { text-align: right; font-size: 11px; color: #94a3b8; }
+        .header-date strong { font-size: 13px; color: white; display: block; }
+        .body { padding: 24px 32px; }
+        .report-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+        .report-range { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+        .stat-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; }
+        .stat-box-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
+        .stat-box-value { font-size: 24px; font-weight: 800; color: #0f172a; }
+        .section-title { font-size: 14px; font-weight: 700; color: #0f172a; margin: 20px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; color: #1e293b; }
+        tr:last-child td { border-bottom: none; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-pending  { background: #fef3c7; color: #92400e; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+        .badge-revoked  { background: #fee2e2; color: #991b1b; }
+        .badge-expired  { background: #f1f5f9; color: #475569; }
+        .badge-entry    { background: #d1fae5; color: #065f46; }
+        .badge-exit     { background: #dbeafe; color: #1e40af; }
+        .permit-type    { font-weight: 600; color: #2563eb; }
+        .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
+        .approval-bar-wrap { background: #f1f5f9; border-radius: 4px; height: 12px; overflow: hidden; }
+        .approval-bar-fill { background: #10b981; height: 100%; border-radius: 4px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-brand">
+            <div class="header-icon">EF</div>
+            <div>
+                <div class="header-title">EFNco</div>
+                <div class="header-sub">Efficient Facility Network Control</div>
+            </div>
+        </div>
+        <div class="header-date">
+            <strong>Analytics Report</strong>
+            Generated: @DateTime.Now.ToString("MMMM dd, yyyy h:mm tt")
+        </div>
+    </div>
+
+    <div class="body">
+        <div class="report-title">Facility Analytics Report</div>
+        <div class="report-range">Date Range: @Model.DateFrom.ToString("MMMM dd, yyyy") — @Model.DateTo.ToString("MMMM dd, yyyy")</div>
+
+        <div class="section-title">Summary Overview</div>
+        <div class="stats-grid">
+            <div class="stat-box"><div class="stat-box-label">Active Permits</div><div class="stat-box-value" style="color:#10b981;">@Model.ActivePermits</div></div>
+            <div class="stat-box"><div class="stat-box-label">Pending Approvals</div><div class="stat-box-value" style="color:#f59e0b;">@Model.PendingPermits</div></div>
+            <div class="stat-box"><div class="stat-box-label">Total Permits</div><div class="stat-box-value">@Model.TotalPermits</div></div>
+            <div class="stat-box"><div class="stat-box-label">Registered Users</div><div class="stat-box-value">@Model.TotalUsers</div></div>
+            <div class="stat-box"><div class="stat-box-label">Today's Entries</div><div class="stat-box-value" style="color:#2563eb;">@Model.TodayEntries</div></div>
+            <div class="stat-box"><div class="stat-box-label">Approval Rate</div><div class="stat-box-value" style="color:#10b981;">@Model.ApprovalRate%</div></div>
+        </div>
+
+        <div class="section-title">Permit Approval Rate</div>
+        <div style="margin-bottom:8px;display:flex;justify-content:space-between;font-size:11px;color:#64748b;">
+            <span>Approved: @Model.ActivePermits</span>
+            <span>Rejected: @Model.RejectedPermits</span>
+            <span>Revoked: @Model.RevokedPermits</span>
+            <span>Rate: @Model.ApprovalRate%</span>
+        </div>
+        <div class="approval-bar-wrap">
+            <div class="approval-bar-fill" style="width:@Model.ApprovalRate%;"></div>
+        </div>
+
+        <div class="two-col" style="margin-top:20px;">
+            <div>
+                <div class="section-title">Permit Status Breakdown</div>
+                <table>
+                    <thead><tr><th>Status</th><th>Count</th><th>%</th></tr></thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.StatusLabels.Count; i++)
+                        {
+                            double pct = Model.TotalPermits > 0 ? Math.Round((double)Model.StatusCounts[i] / Model.TotalPermits * 100, 1) : 0;
+                            <tr>
+                                <td><span class="badge badge-@Model.StatusLabels[i].ToLower()">@Model.StatusLabels[i]</span></td>
+                                <td>@Model.StatusCounts[i]</td>
+                                <td>@pct%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div class="section-title">Permit Type Breakdown</div>
+                <table>
+                    <thead><tr><th>Type</th><th>Count</th><th>%</th></tr></thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.PermitTypeLabels.Count; i++)
+                        {
+                            double pct = Model.TotalPermits > 0 ? Math.Round((double)Model.PermitTypeCounts[i] / Model.TotalPermits * 100, 1) : 0;
+                            <tr>
+                                <td class="permit-type">@Model.PermitTypeLabels[i]</td>
+                                <td>@Model.PermitTypeCounts[i]</td>
+                                <td>@pct%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-title">Daily Entry / Exit (@Model.DateFrom.ToString("MMM dd") — @Model.DateTo.ToString("MMM dd, yyyy"))</div>
+        <table>
+            <thead><tr><th>Date</th><th>Entries</th><th>Exits</th><th>Total</th></tr></thead>
+            <tbody>
+                @for (int i = 0; i < Model.DailyLabels.Count; i++)
+                {
+                    int dayTotal = Model.DailyEntries[i] + Model.DailyExits[i];
+                    if (dayTotal > 0)
+                    {
+                        <tr>
+                            <td>@Model.DailyLabels[i]</td>
+                            <td style="color:#10b981;font-weight:600;">@Model.DailyEntries[i]</td>
+                            <td style="color:#2563eb;font-weight:600;">@Model.DailyExits[i]</td>
+                            <td style="font-weight:700;">@dayTotal</td>
+                        </tr>
+                    }
+                }
+                @if (!Model.DailyEntries.Any(x => x > 0) && !Model.DailyExits.Any(x => x > 0))
+                {
+                    <tr><td colspan="4" style="text-align:center;color:#94a3b8;">No gate activity in this date range</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="section-title">Recent Permit Applications</div>
+        <table>
+            <thead><tr><th>#</th><th>Applicant</th><th>Plate</th><th>Type</th><th>Status</th><th>Applied</th></tr></thead>
+            <tbody>
+                @foreach (var permit in Model.RecentPermits)
+                {
+                    <tr>
+                        <td style="color:#94a3b8;">#@permit.PermitId</td>
+                        <td>@permit.ApplicantName</td>
+                        <td style="font-weight:700;letter-spacing:1px;">@permit.PlateNumber</td>
+                        <td class="permit-type">@permit.PermitType</td>
+                        <td><span class="badge badge-@permit.Status.ToLower()">@permit.Status</span></td>
+                        <td>@permit.AppliedAt.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="section-title">Recent Gate Activity</div>
+        <table>
+            <thead><tr><th>Plate</th><th>Holder</th><th>Action</th><th>Time</th><th>Duration</th></tr></thead>
+            <tbody>
+                @foreach (var log in Model.RecentLogs)
+                {
+                    <tr>
+                        <td style="font-weight:700;letter-spacing:1px;">@log.PlateNumber</td>
+                        <td>@log.HolderName</td>
+                        <td><span class="badge badge-@log.Action.ToLower()">@log.Action</span></td>
+                        <td>@log.Timestamp.ToString("MMM dd h:mm tt")</td>
+                        <td>@(log.Duration ?? "—")</td>
+                    </tr>
+                }
+                @if (!Model.RecentLogs.Any())
+                {
+                    <tr><td colspan="5" style="text-align:center;color:#94a3b8;">No gate activity yet</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <span>EFNco — Efficient Facility Network Control</span>
+            <span>Report generated: @DateTime.Now.ToString("MMMM dd, yyyy h:mm tt")</span>
+            <span>Confidential — For internal use only</span>
+        </div>
+    </div>
+</body>
+</html>

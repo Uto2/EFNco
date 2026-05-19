@@ -118,12 +118,8 @@ namespace EFNco.Models
         public string? RegistrationFileContentType { get; set; }
 
         // ── QR Code ──────────────────────────────────────────
-        // Raw PNG bytes of the generated QR image
         public byte[]? QRCodeData { get; set; }
 
-        // ✅ Unique unguessable token — this is what gets encoded in the QR URL.
-        // Format: https://yoursite.com/Permit/Verify/{QRToken}
-        // Anyone with a phone camera can scan and see the permit status.
         [StringLength(64)]
         public string? QRToken { get; set; }
 
@@ -147,7 +143,11 @@ namespace EFNco.Models
         [ForeignKey("UserId")]
         public virtual ApplicationUser? Applicant { get; set; }
 
-        // Computed helper
+        // ✅ Sprint 7 — Authorized persons on this permit
+        public virtual ICollection<AuthorizedPerson> AuthorizedPersons { get; set; }
+            = new List<AuthorizedPerson>();
+
+        // Computed
         public bool IsExpired => ValidUntil.HasValue && ValidUntil.Value < DateTime.UtcNow;
     }
 }

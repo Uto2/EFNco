@@ -14,19 +14,20 @@
         </div>
     }
 
-    <div class="efn-card">
-        <div class="efn-card-header">
-            <div style="display:flex;align-items:center;gap:16px;">
-                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:white;flex-shrink:0;">
-                    @(Model.FirstName.Substring(0, 1).ToUpper())@(Model.LastName.Substring(0, 1).ToUpper())
-                </div>
-                <div>
-                    <h2 style="font-size:20px;color:var(--white);">@Model.FirstName @Model.LastName</h2>
-                    <p style="font-size:13px;color:var(--gray-400);">@Model.Email</p>
-                    <p style="font-size:11px;color:var(--gray-500);margin-top:2px;">Member since @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
-                </div>
+    <div class="animated-banner" style="margin-bottom:24px; padding:24px 28px;">
+        <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:white;flex-shrink:0;">
+                @(Model.FirstName.Substring(0, 1).ToUpper())@(Model.LastName.Substring(0, 1).ToUpper())
+            </div>
+            <div style="position: relative; z-index: 1;">
+                <h2 style="font-size:24px;font-family:'Syne',sans-serif;color:var(--white);margin-bottom:2px;">@Model.FirstName @Model.LastName</h2>
+                <p style="font-size:14px;color:var(--gray-300);">@Model.Email</p>
+                <p style="font-size:12px;color:var(--gray-400);margin-top:2px;">Member since @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
             </div>
         </div>
+    </div>
+
+    <div class="efn-card card-animated" style="animation-delay: 0.1s;">
 
         <form asp-action="Profile" method="post">
             @Html.AntiForgeryToken()

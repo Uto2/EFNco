@@ -1,0 +1,218 @@
+@model EFNco.Models.GateVerifyResultViewModel
+@{
+    ViewData["Title"] = Model.IsValid ? (Model.Action == EFNco.Models.LogAction.Entry ? "Entry Logged" : "Exit Logged") : "Access Denied";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — EFNco Gate</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body {
+            background: var(--navy);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .result-page {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .result-card {
+            border-radius: 20px;
+            padding: 36px 32px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+        }
+
+        .result-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .result-plate {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 16px 0;
+        }
+
+        .result-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .result-info-item label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .result-info-item span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .duration-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .duration-label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .duration-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-page">
+
+        @if (Model.IsValid)
+        {
+            bool isEntry = Model.Action == EFNco.Models.LogAction.Entry;
+            <div class="result-card" style="background:@(isEntry ? "rgba(16,185,129,0.08)" : "rgba(37,99,235,0.08)");border:2px solid @(isEntry ? "var(--success)" : "var(--blue)");">
+                <div class="result-icon" style="background:@(isEntry ? "rgba(16,185,129,0.15)" : "rgba(37,99,235,0.15)");">
+                    @if (isEntry)
+                    {
+                        <span>🟢</span>
+                    }
+                    else
+                    {
+                        <span>🔵</span>
+                    }
+                </div>
+                <div class="result-title" style="color:@(isEntry ? "var(--success)" : "var(--blue-glow)");">
+                    @(isEntry ? "ENTRY GRANTED" : "EXIT RECORDED")
+                </div>
+                <div style="font-size:13px;color:var(--gray-400);">@Model.Timestamp.ToString("MMM dd, yyyy — h:mm:ss tt")</div>
+                <div class="result-plate" style="background:var(--navy-light);color:var(--white);border:2px solid var(--border);">@Model.PlateNumber</div>
+                <div class="result-info-grid">
+                    <div class="result-info-item"><label style="color:var(--gray-500);">Holder</label><span style="color:var(--white);">@Model.HolderName</span></div>
+                    <div class="result-info-item"><label style="color:var(--gray-500);">Permit Type</label><span style="color:var(--white);">@Model.PermitType</span></div>
+                </div>
+
+                @if (!isEntry && Model.ParkingDuration.HasValue)
+                {
+                    <div class="duration-box" style="background:var(--navy-light);border:1px solid var(--border);">
+                        <div class="duration-label" style="color:var(--gray-400);">Parking Duration</div>
+                        <div class="duration-value" style="color:var(--cyan);">@Model.DurationDisplay</div>
+                        @if (Model.IsOvertime)
+                        {
+                            <div style="margin-top:8px;font-size:13px;color:var(--danger);font-weight:600;background:rgba(239,68,68,0.1);padding:6px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);">
+                                ⚠ Overtime by @Model.OvertimeMinutes.ToString("0.#") minutes
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (Model.AuthorizedPersons != null && Model.AuthorizedPersons.Any())
+                {
+                    <div style="margin-top:20px;text-align:left;">
+                        <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Authorized Persons</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            @foreach (var p in Model.AuthorizedPersons)
+                            {
+                                <div style="background:var(--navy-light);padding:10px 14px;border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                                    <div style="font-size:14px;font-weight:600;color:var(--white);">@p.FullName</div>
+                                    <div style="font-size:12px;color:var(--gray-400);">@p.Relationship</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="result-card" style="background:rgba(239,68,68,0.08);border:2px solid var(--danger);">
+                <div class="result-icon" style="background:rgba(239,68,68,0.15);"><span>🔴</span></div>
+                <div class="result-title" style="color:var(--danger);">ACCESS DENIED</div>
+                <div style="font-size:13px;color:var(--gray-400);margin-top:4px;">@Model.Timestamp.ToString("MMM dd, yyyy — h:mm:ss tt")</div>
+                <div class="result-plate" style="background:rgba(239,68,68,0.1);color:var(--danger);border:2px solid rgba(239,68,68,0.3);">@Model.PlateNumber</div>
+                <div style="margin-top:16px;padding:14px;background:rgba(239,68,68,0.08);border-radius:10px;border:1px solid rgba(239,68,68,0.2);">
+                    <div style="font-size:11px;color:var(--danger);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Reason</div>
+                    <div style="font-size:14px;color:#fca5a5;">@Model.InvalidReason</div>
+                </div>
+            </div>
+        }
+
+        @* ── Actions ── *@
+        <div style="display:flex;gap:10px;">
+            <a asp-controller="Gate" asp-action="Scan"
+               class="btn-efn btn-primary" style="flex:1;justify-content:center;padding:13px;">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 4H1m18 0h.01M5 20H3m2-4H1" />
+                </svg>
+                Scan Next
+            </a>
+
+            @* Instruction 4: Log Violation Button *@
+            <a asp-controller="Violation" asp-action="Log"
+               asp-route-plateNumber="@Model.PlateNumber"
+               asp-route-permitId="@Model.PermitId"
+               class="btn-efn btn-danger" style="flex:1;justify-content:center;padding:13px;">
+                ⚠ Log Violation
+            </a>
+
+            <a asp-controller="Gate" asp-action="Log"
+               class="btn-efn btn-outline" style="flex:1;justify-content:center;padding:13px;">
+                📋 View Log
+            </a>
+        </div>
+
+        <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--gray-500);">
+            Returning to scanner in <span id="countdown">8</span>s...
+            <a asp-controller="Gate" asp-action="Scan" style="color:var(--blue-light);margin-left:6px;">Cancel</a>
+        </div>
+    </div>
+
+    <script>
+        var count = 8;
+        var timer = setInterval(function() {
+            count--;
+            document.getElementById('countdown').textContent = count;
+            if (count <= 0) { clearInterval(timer); window.location.href = '@Url.Action("Scan", "Gate")'; }
+        }, 1000);
+    </script>
+</body>
+</html>

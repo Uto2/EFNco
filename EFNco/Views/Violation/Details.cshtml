@@ -1,0 +1,95 @@
+@model EFNco.Models.ViolationDetailsViewModel
+@{
+    ViewData["Title"] = "Violation Details";
+    var statusStyle = Model.Status switch {
+        EFNco.Models.ViolationStatus.Unpaid    => "background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)",
+        EFNco.Models.ViolationStatus.Paid      => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)",
+        EFNco.Models.ViolationStatus.Appealed  => "background:rgba(245,158,11,0.1);color:#fcd34d;border:1px solid rgba(245,158,11,0.25)",
+        EFNco.Models.ViolationStatus.Dismissed => "background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)",
+        _ => "background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)"
+    };
+}
+
+<div style="max-width:580px;">
+    <div style="margin-bottom:20px;">
+        <a asp-action="MyViolations" class="btn-efn btn-outline" style="padding:7px 14px;font-size:13px;">← Back to My Violations</a>
+    </div>
+
+    <div class="efn-card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            <div>
+                <h2 style="font-size:20px;font-family:'Syne',sans-serif;">Violation #@Model.Id</h2>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:4px;">Issued @Model.IssuedAt.ToString("MMMM dd, yyyy h:mm tt")</p>
+            </div>
+            <span class="badge" style="@statusStyle;font-size:13px;padding:5px 14px;">@Model.Status</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Plate Number</div>
+                <div style="font-size:16px;font-weight:700;color:var(--white);font-family:'Syne',sans-serif;letter-spacing:2px;">@Model.PlateNumber</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Violation Type</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.ViolationTypeDisplay</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Fine Amount</div>
+                <div style="font-size:22px;font-weight:800;color:var(--danger);font-family:'Syne',sans-serif;">₱@Model.FineAmount.ToString("N2")</div>
+            </div>
+            <div>
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Issued By</div>
+                <div style="font-size:14px;color:var(--gray-300);">@Model.IssuedByName</div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div style="margin-bottom:16px;">
+                <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Notes</div>
+                <div style="font-size:14px;color:var(--gray-300);background:var(--navy);padding:12px;border-radius:8px;">@Model.Notes</div>
+            </div>
+        }
+
+        @if (Model.Status == EFNco.Models.ViolationStatus.Unpaid && !Model.HasAppeal)
+        {
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;">
+                <a asp-action="Appeal" asp-route-id="@Model.Id" class="btn-efn btn-primary">Submit Appeal</a>
+            </div>
+        }
+    </div>
+
+    @if (Model.HasAppeal)
+    {
+        <div class="efn-card" style="border-color:rgba(245,158,11,0.2);">
+            <div class="efn-card-header">
+                <h3 style="font-size:15px;color:var(--warning);">Appeal Status</h3>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div>
+                    <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Your Reason</div>
+                    <div style="font-size:14px;color:var(--gray-300);background:var(--navy);padding:12px;border-radius:8px;">@Model.AppealReason</div>
+                </div>
+                @if (Model.AppealIsReviewed)
+                {
+                    <div>
+                        <div style="font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Admin Response</div>
+                        <div class="alert @(Model.AppealIsApproved ? "alert-success" : "alert-danger")" style="margin:0;">
+                            @(Model.AppealIsApproved ? "✅ Approved — Violation dismissed." : "❌ Rejected — Fine remains payable.")
+                            @if (!string.IsNullOrEmpty(Model.AppealAdminResponse))
+                            {
+                                <div style="margin-top:6px;font-size:13px;">@Model.AppealAdminResponse</div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning" style="margin:0;">
+                        ⏳ Your appeal is pending review by an administrator.
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
